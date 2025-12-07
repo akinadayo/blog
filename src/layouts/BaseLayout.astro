@@ -21,6 +21,15 @@ const { title, description = 'Tech & Life Journey - 技術と人生の交差点�
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title} | DEVLOG</title>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-96MQWWQ70F"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-96MQWWQ70F');
+    </script>
   </head>
   <body class="min-h-screen bg-background flex flex-col relative overflow-x-hidden">
     <RetroBackground client:only="react" />
