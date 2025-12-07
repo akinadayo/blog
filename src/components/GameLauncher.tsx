@@ -25,7 +25,7 @@ export function GameLauncher() {
           repeat: Infinity,
         }}
       >
-        INSERT COIN
+        PLAY GAME
       </motion.button>
 
       {/* ゲームモーダル */}
