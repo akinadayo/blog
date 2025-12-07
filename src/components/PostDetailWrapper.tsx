@@ -122,7 +122,7 @@ export function PostDetailWrapper({ title, category, date, tags = [], coverImage
             </p>
             <a href="/">
               <Button size="lg" className="rounded-full px-8 shadow-lg hover:shadow-xl">
-                Read More Posts
+                記事一覧に戻る
               </Button>
             </a>
           </div>
