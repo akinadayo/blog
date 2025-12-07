@@ -121,7 +121,7 @@ export function PostDetailWrapper({ title, category, date, tags = [], coverImage
               この記事が役に立ったら、他の記事もチェックしてみてください。
             </p>
             <a href="/">
-              <Button size="lg" className="rounded-full px-8 shadow-lg hover:shadow-xl">
+              <Button size="lg" className="rounded-full px-8 shadow-lg hover:shadow-xl font-sans">
                 記事一覧に戻る
               </Button>
             </a>
