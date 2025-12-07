@@ -23,7 +23,7 @@ export function PostCard({ title, excerpt, date, category, slug, collection, cov
     }
   };
 
-  const href = `/blog/${collection}/${slug}/`;
+  const href = `/${collection}/${slug}/`;
 
   return (
     <motion.div

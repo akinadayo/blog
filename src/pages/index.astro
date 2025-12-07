@@ -96,13 +96,13 @@ const allPosts = [
 
     <!-- カテゴリフィルター（アーケード風） -->
     <FadeIn client:only="react" delay={0.2} className="flex flex-wrap justify-center gap-2 md:gap-3 mb-4 md:mb-8">
-      <a href="/blog/" class="px-3 py-1.5 md:px-6 md:py-3 text-[10px] md:text-xs border-2 md:border-4 bg-accent text-accent-foreground border-primary shadow-[2px_2px_0_0_hsl(280_100%_60%)] md:shadow-[4px_4px_0_0_hsl(280_100%_60%)] font-display hover:-translate-y-1 transition-transform">
+      <a href="/" class="px-3 py-1.5 md:px-6 md:py-3 text-[10px] md:text-xs border-2 md:border-4 bg-accent text-accent-foreground border-primary shadow-[2px_2px_0_0_hsl(280_100%_60%)] md:shadow-[4px_4px_0_0_hsl(280_100%_60%)] font-display hover:-translate-y-1 transition-transform">
         ALL [{allPosts.length}]
       </a>
-      <a href="/blog/tech/" class="px-3 py-1.5 md:px-6 md:py-3 text-[10px] md:text-xs border-2 md:border-4 bg-card text-foreground border-secondary hover:bg-secondary hover:text-secondary-foreground hover:-translate-y-1 transition-all font-display">
+      <a href="/tech/" class="px-3 py-1.5 md:px-6 md:py-3 text-[10px] md:text-xs border-2 md:border-4 bg-card text-foreground border-secondary hover:bg-secondary hover:text-secondary-foreground hover:-translate-y-1 transition-all font-display">
         TECH [{techPosts.length}]
       </a>
-      <a href="/blog/diary/" class="px-3 py-1.5 md:px-6 md:py-3 text-[10px] md:text-xs border-2 md:border-4 bg-card text-foreground border-secondary hover:bg-secondary hover:text-secondary-foreground hover:-translate-y-1 transition-all font-display">
+      <a href="/diary/" class="px-3 py-1.5 md:px-6 md:py-3 text-[10px] md:text-xs border-2 md:border-4 bg-card text-foreground border-secondary hover:bg-secondary hover:text-secondary-foreground hover:-translate-y-1 transition-all font-display">
         DIARY [{diaryPosts.length}]
       </a>
     </FadeIn>

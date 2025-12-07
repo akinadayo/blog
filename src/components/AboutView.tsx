@@ -35,7 +35,7 @@ export function AboutView() {
           >
             <div className="relative inline-block mb-8">
               <Avatar className="w-32 h-32 md:w-40 md:h-40 ring-4 ring-primary/20 ring-offset-4 ring-offset-background shadow-2xl">
-                <AvatarImage src="/blog/icon.JPG" />
+                <AvatarImage src="/icon.JPG" />
                 <AvatarFallback>NeU</AvatarFallback>
               </Avatar>
               <div className="absolute -bottom-2 -right-2 w-12 h-12 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg">
