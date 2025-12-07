@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://neu-dev.net',
-  base: '/blog',
+  // base: '/blog', // カスタムドメインではbaseは不要
   integrations: [
     react(),
   ],
