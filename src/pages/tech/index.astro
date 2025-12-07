@@ -1,0 +1,53 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { PostCard } from '../../components/PostCard';
+
+const techPosts = await getCollection('tech', ({ data }) => !data.draft);
+const sortedPosts = techPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<BaseLayout title="TECH" currentPage="tech">
+  <div class="container mx-auto px-4 py-12 md:py-16 max-w-6xl">
+    <div class="mb-12 text-center">
+      <div class="inline-block px-8 py-4 bg-accent border-4 border-primary">
+        <h1 class="text-xl md:text-2xl text-accent-foreground font-display">
+          === TECH ARTICLES ===
+        </h1>
+      </div>
+      <p class="mt-4 text-muted-foreground font-jp-game">
+        技術的な学びと発見を記録しています
+      </p>
+    </div>
+
+    <div class="flex flex-wrap justify-center gap-3 mb-12">
+      <a href="/blog/" class="px-6 py-3 text-xs border-4 bg-card text-foreground border-primary hover:bg-primary hover:text-primary-foreground transition-all font-display">
+        &lt; BACK TO HOME
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {sortedPosts.map((post) => (
+        <PostCard
+          client:only="react"
+          title={post.data.title}
+          excerpt={post.data.description}
+          date={post.data.pubDate.toLocaleDateString('ja-JP')}
+          category="tech"
+          slug={post.slug}
+          collection="tech"
+          coverImage={post.data.coverImage}
+        />
+      ))}
+    </div>
+
+    {sortedPosts.length === 0 && (
+      <div class="text-center py-20">
+        <div class="inline-block px-8 py-6 bg-muted border-4 border-accent">
+          <p class="text-base text-foreground font-display">COMING SOON...</p>
+          <p class="text-sm text-muted-foreground mt-2">記事を準備中です</p>
+        </div>
+      </div>
+    )}
+  </div>
+</BaseLayout>

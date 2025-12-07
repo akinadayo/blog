@@ -1,0 +1,8 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { AboutView } from '../components/AboutView';
+---
+
+<BaseLayout title="ABOUT" currentPage="about">
+  <AboutView client:only="react" />
+</BaseLayout>

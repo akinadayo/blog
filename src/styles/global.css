@@ -1,0 +1,149 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700;800;900&family=DotGothic16&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Press Start 2P', 'Courier New', monospace;
+  --font-jp-game: 'DotGothic16', 'Press Start 2P', monospace;
+
+  /* レトロゲームカラーパレット（8bit風） */
+  --color-background: hsl(230 30% 15%);
+  --color-foreground: hsl(190 70% 85%);
+
+  --color-card: hsl(230 25% 20%);
+  --color-card-foreground: hsl(190 70% 85%);
+
+  --color-popover: hsl(230 25% 20%);
+  --color-popover-foreground: hsl(190 70% 85%);
+
+  --color-primary: hsl(190 70% 75%);
+  --color-primary-foreground: hsl(230 30% 15%);
+
+  --color-secondary: hsl(280 60% 75%);
+  --color-secondary-foreground: hsl(230 30% 15%);
+
+  --color-muted: hsl(230 20% 25%);
+  --color-muted-foreground: hsl(200 50% 70%);
+
+  --color-accent: hsl(320 70% 80%);
+  --color-accent-foreground: hsl(230 30% 15%);
+
+  --color-destructive: hsl(0 70% 70%);
+  --color-destructive-foreground: hsl(230 30% 15%);
+
+  --color-border: hsl(190 70% 75%);
+  --color-input: hsl(230 20% 25%);
+  --color-ring: hsl(190 70% 75%);
+
+  --radius-lg: 0px;
+  --radius-md: 0px;
+  --radius-sm: 0px;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+  }
+
+  /* デフォルトは読みやすいフォント */
+  body, p, span, a, li, div {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  /* 大きな見出しやタイトルにピクセルフォントを適用 */
+  .font-display {
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    line-height: 1.6;
+  }
+
+  /* 日本語ゲームフォント */
+  .font-jp-game {
+    font-family: 'DotGothic16', 'Press Start 2P', monospace;
+    line-height: 1.8;
+  }
+
+  /* ボタンもピクセルフォント */
+  button {
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+  }
+
+  /* CRTスキャンライン効果 - 軽量版（アニメーション削除） */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(150, 230, 255, 0.015) 0px,
+      rgba(150, 230, 255, 0.015) 1px,
+      transparent 1px,
+      transparent 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* CRTグロー効果 - 軽量版 */
+  body::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.2) 100%);
+    pointer-events: none;
+    z-index: 9998;
+  }
+
+  /* カスタムスクロールバー（レトロ風） */
+  ::-webkit-scrollbar {
+    width: 16px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(230 30% 15%);
+    border: 2px solid hsl(190 70% 75%);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(190 70% 75%);
+    border: 2px solid hsl(200 80% 90%);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(190 80% 80%);
+  }
+
+  /* ピクセルボーダースタイル - 軽量版 */
+  .pixel-border {
+    border: 4px solid hsl(190 70% 75%);
+  }
+
+  /* グリッチエフェクト */
+  @keyframes glitch {
+    0% { transform: translate(0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(-2px, -2px); }
+    60% { transform: translate(2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+    100% { transform: translate(0); }
+  }
+
+  /* ブリンク効果 */
+  @keyframes blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+}

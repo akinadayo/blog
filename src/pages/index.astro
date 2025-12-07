@@ -1,0 +1,136 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { PostCard } from '../components/PostCard';
+import { RetroGameBackground } from '../components/RetroGameBackground';
+import { GameLauncher } from '../components/GameLauncher';
+import { FadeIn, ScaleIn, BounceIn, SlideIn, Float } from '../components/ScrollAnimations';
+import { AnimatedTitle } from '../components/AnimatedTitle';
+
+const techPosts = await getCollection('tech', ({ data }) => !data.draft);
+const diaryPosts = await getCollection('diary', ({ data }) => !data.draft);
+
+const allPosts = [
+  ...techPosts.map(post => ({
+    ...post,
+    category: 'tech',
+    description: post.data.description || '',
+    coverImage: post.data.coverImage,
+  })),
+  ...diaryPosts.map(post => ({
+    ...post,
+    category: 'diary',
+    description: '',
+    coverImage: post.data.coverImage,
+  })),
+].sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<BaseLayout title="HOME" currentPage="home">
+  <!-- Hero Section -->
+  <section class="relative overflow-hidden border-b-2 md:border-b-4 border-primary py-6 md:py-16">
+    <!-- 背景に自動プレイゲーム -->
+    <div class="absolute inset-0 z-0">
+      <RetroGameBackground client:only="react" />
+      <!-- ぼかしとオーバーレイ（薄めに調整） -->
+      <div class="absolute inset-0 backdrop-blur-sm bg-background/30"></div>
+    </div>
+
+    <!-- ドット絵風の装飾 -->
+    <div class="absolute top-0 left-0 right-0 h-1 md:h-2 bg-accent z-10"></div>
+    <div class="absolute bottom-0 left-0 right-0 h-1 md:h-2 bg-secondary z-10"></div>
+
+    <div class="container mx-auto px-3 md:px-4 max-w-6xl relative z-10">
+      <div class="text-center space-y-4 md:space-y-6">
+        <!-- "PRESS START" 風バッジ -->
+        <div class="inline-block px-3 py-1.5 md:px-6 md:py-3 bg-muted border-2 md:border-4 border-accent animate-pulse">
+          <span class="text-[10px] md:text-xs text-accent font-display">★ WELCOME PLAYER ★</span>
+        </div>
+
+        <!-- ピクセルアート風タイトル -->
+        <AnimatedTitle client:only="react" />
+
+        <!-- 8bit風サブタイトル -->
+        <p class="text-xs md:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed px-2 md:px-4 font-jp-game">
+          技術的な学び、日々の発見、そして何気ない日常を記録する個人ブログ。
+        </p>
+
+        <!-- レトロなステータス表示 & INSERT COIN -->
+        <div class="inline-flex flex-col items-stretch pt-2 md:pt-4">
+          <FadeIn client:only="react" delay={0.3} className="flex items-center justify-center gap-2 md:gap-4">
+            {[
+              { label: 'ARTICLES', value: allPosts.length, color: 'text-accent' },
+              { label: 'UPDATES', value: 'SOMETIME', color: 'text-secondary' },
+            ].map((stat) => (
+              <div class="flex-1 px-2 py-1.5 md:px-4 md:py-3 bg-card border-2 md:border-4 border-primary">
+                <div class="text-[10px] md:text-xs text-muted-foreground font-display">{stat.label}</div>
+                <div class={`text-xs md:text-base font-semibold ${stat.color}`}>{stat.value}</div>
+              </div>
+            ))}
+          </FadeIn>
+
+          <!-- INSERT COIN ボタン -->
+          <BounceIn client:only="react" delay={0.4} className="pt-2 md:pt-4">
+            <GameLauncher client:only="react" />
+          </BounceIn>
+        </div>
+
+        <!-- "SCROLL TO START" 風メッセージ -->
+        <Float client:only="react" duration={2} className="text-xs md:text-sm text-foreground font-display pt-6 md:pt-10">
+          ▼ SCROLL TO START ▼
+        </Float>
+      </div>
+    </div>
+  </section>
+
+  <!-- Content Section -->
+  <div class="container mx-auto px-2 md:px-4 py-6 md:py-12 max-w-6xl">
+    <!-- セクションタイトル（ゲーム風） -->
+    <ScaleIn client:only="react" className="mb-4 md:mb-8 text-center">
+      <div class="inline-block px-4 py-2 md:px-8 md:py-4 bg-primary border-2 md:border-4 border-accent">
+        <h2 class="text-sm md:text-2xl text-primary-foreground font-display">
+          ═══ STAGE SELECT ═══
+        </h2>
+      </div>
+    </ScaleIn>
+
+    <!-- カテゴリフィルター（アーケード風） -->
+    <FadeIn client:only="react" delay={0.2} className="flex flex-wrap justify-center gap-2 md:gap-3 mb-4 md:mb-8">
+      <a href="/blog/" class="px-3 py-1.5 md:px-6 md:py-3 text-[10px] md:text-xs border-2 md:border-4 bg-accent text-accent-foreground border-primary shadow-[2px_2px_0_0_hsl(280_100%_60%)] md:shadow-[4px_4px_0_0_hsl(280_100%_60%)] font-display hover:-translate-y-1 transition-transform">
+        ALL [{allPosts.length}]
+      </a>
+      <a href="/blog/tech/" class="px-3 py-1.5 md:px-6 md:py-3 text-[10px] md:text-xs border-2 md:border-4 bg-card text-foreground border-secondary hover:bg-secondary hover:text-secondary-foreground hover:-translate-y-1 transition-all font-display">
+        TECH [{techPosts.length}]
+      </a>
+      <a href="/blog/diary/" class="px-3 py-1.5 md:px-6 md:py-3 text-[10px] md:text-xs border-2 md:border-4 bg-card text-foreground border-secondary hover:bg-secondary hover:text-secondary-foreground hover:-translate-y-1 transition-all font-display">
+        DIARY [{diaryPosts.length}]
+      </a>
+    </FadeIn>
+
+    <!-- 記事グリッド -->
+    <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-6">
+      {allPosts.map((post, index) => (
+        <PostCard
+          client:only="react"
+          title={post.data.title}
+          excerpt={post.description || ''}
+          date={post.data.pubDate.toLocaleDateString('ja-JP')}
+          category={post.category}
+          slug={post.slug}
+          collection={post.category as 'tech' | 'diary'}
+          coverImage={post.coverImage}
+          index={index}
+        />
+      ))}
+    </div>
+
+    {allPosts.length === 0 && (
+      <div class="text-center py-20">
+        <div class="inline-block px-8 py-6 bg-destructive border-4 border-accent">
+          <p class="text-base text-destructive-foreground font-display">GAME OVER</p>
+          <p class="text-sm text-destructive-foreground mt-2">NO DATA FOUND</p>
+        </div>
+      </div>
+    )}
+  </div>
+</BaseLayout>

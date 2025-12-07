@@ -1,0 +1,36 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { PostDetailWrapper } from '../components/PostDetailWrapper';
+
+interface Props {
+  title: string;
+  description?: string;
+  pubDate: Date;
+  category: string;
+  tags?: string[];
+  coverImage?: string;
+  slug: string;
+}
+
+const { title, description, pubDate, category, tags = [], coverImage, slug } = Astro.props;
+
+const formattedDate = pubDate.toLocaleDateString('ja-JP', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<BaseLayout title={title} description={description} currentPage="post">
+  <PostDetailWrapper
+    client:only="react"
+    title={title}
+    category={category}
+    date={formattedDate}
+    tags={tags}
+    coverImage={coverImage}
+    slug={slug}
+  >
+    <slot />
+  </PostDetailWrapper>
+</BaseLayout>

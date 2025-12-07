@@ -1,0 +1,53 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { PostCard } from '../../components/PostCard';
+
+const diaryPosts = await getCollection('diary', ({ data }) => !data.draft);
+const sortedPosts = diaryPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<BaseLayout title="DIARY" currentPage="diary">
+  <div class="container mx-auto px-4 py-12 md:py-16 max-w-6xl">
+    <div class="mb-12 text-center">
+      <div class="inline-block px-8 py-4 bg-secondary border-4 border-primary">
+        <h1 class="text-xl md:text-2xl text-secondary-foreground font-display">
+          === DIARY ===
+        </h1>
+      </div>
+      <p class="mt-4 text-muted-foreground font-jp-game">
+        日々の出来事や思ったことを記録しています
+      </p>
+    </div>
+
+    <div class="flex flex-wrap justify-center gap-3 mb-12">
+      <a href="/blog/" class="px-6 py-3 text-xs border-4 bg-card text-foreground border-primary hover:bg-primary hover:text-primary-foreground transition-all font-display">
+        &lt; BACK TO HOME
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {sortedPosts.map((post) => (
+        <PostCard
+          client:only="react"
+          title={post.data.title}
+          excerpt={post.data.mood ? `Mood: ${post.data.mood}` : ''}
+          date={post.data.pubDate.toLocaleDateString('ja-JP')}
+          category="diary"
+          slug={post.slug}
+          collection="diary"
+          coverImage={post.data.coverImage}
+        />
+      ))}
+    </div>
+
+    {sortedPosts.length === 0 && (
+      <div class="text-center py-20">
+        <div class="inline-block px-8 py-6 bg-muted border-4 border-accent">
+          <p class="text-base text-foreground font-display">COMING SOON...</p>
+          <p class="text-sm text-muted-foreground mt-2">記事を準備中です</p>
+        </div>
+      </div>
+    )}
+  </div>
+</BaseLayout>
