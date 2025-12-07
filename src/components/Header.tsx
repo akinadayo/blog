@@ -7,7 +7,7 @@ interface HeaderProps {
 
 export function Header({ currentPage = 'home' }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-50 w-full border-b-2 md:border-b-4 border-primary bg-card shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+    <header className="md:sticky md:top-0 z-50 w-full border-b-2 md:border-b-4 border-primary bg-card shadow-[0_0_20px_rgba(168,85,247,0.4)]">
       <div className="container flex h-12 md:h-16 items-center justify-between px-2 md:px-4 max-w-7xl mx-auto">
         <motion.a
           href="/"

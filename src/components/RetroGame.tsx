@@ -1030,20 +1030,23 @@ export function RetroGame({ onClose }: RetroGameProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center"
+      className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-2"
     >
-      <div ref={containerRef} className="w-full max-w-4xl px-4">
-        {/* ゲームタイトル */}
+      <div ref={containerRef} className="w-full max-w-4xl px-2 md:px-4">
+        {/* 閉じるボタン（上部） */}
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="text-center mb-4"
+          className="flex justify-end mb-2"
         >
-          <div className="inline-block px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 border-4 border-cyan-400 shadow-lg shadow-purple-500/50">
-            <h2 className="text-lg md:text-2xl text-white font-display tracking-wider">
-              BRICK BREAKER
-            </h2>
-          </div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-800 text-gray-300 border-2 border-gray-600 font-display text-sm rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            ✕ CLOSE
+          </motion.button>
         </motion.div>
 
         {/* ゲームキャンバス */}
@@ -1151,25 +1154,11 @@ export function RetroGame({ onClose }: RetroGameProps) {
           )}
         </motion.div>
 
-        {/* 操作説明・閉じるボタン */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="mt-4 text-center space-y-3"
-        >
-          <div className="flex flex-wrap justify-center gap-2 text-xs text-gray-400">
-            <span className="px-2 py-1 bg-gray-800 rounded">⬌ パドル移動</span>
-            <span className="px-2 py-1 bg-gray-800 rounded">ESC 一時停止</span>
-          </div>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onClose}
-            className="px-6 py-2 bg-gray-800 text-gray-300 border-2 border-gray-600 font-display text-xs rounded-lg hover:bg-gray-700 transition-colors"
-          >
-            ✕ CLOSE
-          </motion.button>
-        </motion.div>
+        {/* 操作説明（PCのみ） */}
+        <div className="hidden md:flex justify-center gap-2 mt-2 text-xs text-gray-400">
+          <span className="px-2 py-1 bg-gray-800 rounded">⬌ パドル移動</span>
+          <span className="px-2 py-1 bg-gray-800 rounded">ESC 一時停止</span>
+        </div>
       </div>
     </motion.div>
   );
