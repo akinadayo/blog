@@ -28,7 +28,7 @@ const allPosts = [
 
 <BaseLayout title="HOME" currentPage="home">
   <!-- Hero Section -->
-  <section class="relative overflow-hidden border-b-2 md:border-b-4 border-primary py-6 md:py-16">
+  <section class="relative overflow-hidden border-b-2 md:border-b-4 border-primary py-12 md:py-16 min-h-[70vh] md:min-h-0 flex items-center">
     <!-- 背景に自動プレイゲーム -->
     <div class="absolute inset-0 z-0">
       <RetroGameBackground client:only="react" />
@@ -40,43 +40,43 @@ const allPosts = [
     <div class="absolute top-0 left-0 right-0 h-1 md:h-2 bg-accent z-10"></div>
     <div class="absolute bottom-0 left-0 right-0 h-1 md:h-2 bg-secondary z-10"></div>
 
-    <div class="container mx-auto px-3 md:px-4 max-w-6xl relative z-10">
-      <div class="text-center space-y-4 md:space-y-6">
+    <div class="container mx-auto px-4 md:px-4 max-w-6xl relative z-10 w-full">
+      <div class="text-center space-y-5 md:space-y-6">
         <!-- "PRESS START" 風バッジ -->
-        <div class="inline-block px-3 py-1.5 md:px-6 md:py-3 bg-muted border-2 md:border-4 border-accent animate-pulse">
-          <span class="text-[10px] md:text-xs text-accent font-display">★ WELCOME PLAYER ★</span>
+        <div class="inline-block px-4 py-2 md:px-6 md:py-3 bg-muted border-2 md:border-4 border-accent animate-pulse">
+          <span class="text-xs md:text-xs text-accent font-display">★ WELCOME PLAYER ★</span>
         </div>
 
         <!-- ピクセルアート風タイトル -->
         <AnimatedTitle client:only="react" />
 
         <!-- 8bit風サブタイトル -->
-        <p class="text-xs md:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed px-2 md:px-4 font-jp-game">
+        <p class="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed px-4 md:px-4 font-jp-game">
           技術的な学び、日々の発見、そして何気ない日常を記録する個人ブログ。
         </p>
 
         <!-- レトロなステータス表示 & INSERT COIN -->
-        <div class="inline-flex flex-col items-stretch pt-2 md:pt-4">
-          <FadeIn client:only="react" delay={0.3} className="flex items-center justify-center gap-2 md:gap-4">
+        <div class="inline-flex flex-col items-stretch pt-4 md:pt-4">
+          <FadeIn client:only="react" delay={0.3} className="flex items-center justify-center gap-3 md:gap-4">
             {[
               { label: 'ARTICLES', value: allPosts.length, color: 'text-accent' },
               { label: 'UPDATES', value: 'SOMETIME', color: 'text-secondary' },
             ].map((stat) => (
-              <div class="flex-1 px-2 py-1.5 md:px-4 md:py-3 bg-card border-2 md:border-4 border-primary">
-                <div class="text-[10px] md:text-xs text-muted-foreground font-display">{stat.label}</div>
-                <div class={`text-xs md:text-base font-semibold ${stat.color}`}>{stat.value}</div>
+              <div class="flex-1 px-4 py-2 md:px-4 md:py-3 bg-card border-2 md:border-4 border-primary">
+                <div class="text-xs md:text-xs text-muted-foreground font-display">{stat.label}</div>
+                <div class={`text-sm md:text-base font-semibold ${stat.color}`}>{stat.value}</div>
               </div>
             ))}
           </FadeIn>
 
           <!-- INSERT COIN ボタン -->
-          <BounceIn client:only="react" delay={0.4} className="pt-2 md:pt-4">
+          <BounceIn client:only="react" delay={0.4} className="pt-4 md:pt-4">
             <GameLauncher client:only="react" />
           </BounceIn>
         </div>
 
         <!-- "SCROLL TO START" 風メッセージ -->
-        <Float client:only="react" duration={2} className="text-xs md:text-sm text-foreground font-display pt-6 md:pt-10">
+        <Float client:only="react" duration={2} className="text-sm md:text-sm text-foreground font-display pt-8 md:pt-10">
           ▼ SCROLL TO START ▼
         </Float>
       </div>
