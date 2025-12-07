@@ -100,20 +100,9 @@ export function PostDetailWrapper({ title, category, date, tags = [], coverImage
         transition={{ delay: 0.2 }}
         className="container max-w-4xl mx-auto px-6 py-16"
       >
-        {/* カバー画像 */}
-        {coverImage && (
-          <div className="rounded-3xl overflow-hidden mb-16 shadow-2xl ring-1 ring-black/5">
-            <img
-              src={coverImage}
-              alt={title}
-              className="w-full aspect-video object-cover"
-            />
-          </div>
-        )}
-
-        {/* 記事本文 */}
+        {/* 記事本文 - 画像はアスペクト比を維持して表示 */}
         <div
-          className="prose prose-neutral md:prose-lg dark:prose-invert max-w-none leading-relaxed prose-headings:font-black prose-headings:tracking-tight prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-img:rounded-2xl prose-code:text-primary prose-code:bg-primary/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded"
+          className="prose prose-neutral md:prose-lg dark:prose-invert max-w-none leading-relaxed prose-headings:font-black prose-headings:tracking-tight prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-img:rounded-2xl prose-img:w-auto prose-img:max-w-full prose-img:h-auto prose-img:mx-auto prose-code:text-primary prose-code:bg-primary/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded"
         >
           {children}
         </div>
