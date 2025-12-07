@@ -49,26 +49,60 @@ export function PostActions({ slug, title }: PostActionsProps) {
   const handleShare = async () => {
     const url = window.location.href;
 
-    // Web Share APIが使える場合
+    // Web Share APIが使える場合（主にモバイル）
     if (navigator.share) {
       try {
         await navigator.share({
           title: title,
           url: url,
         });
+        return;
       } catch {
-        // ユーザーがキャンセルした場合など
+        // ユーザーがキャンセルした場合は何もしない
+        return;
       }
-    } else {
-      // フォールバック: クリップボードにコピー
+    }
+
+    // クリップボードにコピー
+    const copyToClipboard = (text: string): boolean => {
+      // 新しいClipboard API
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          setShowCopied(true);
+          setTimeout(() => setShowCopied(false), 2000);
+        }).catch(() => {
+          // 失敗したらフォールバック
+          fallbackCopy(text);
+        });
+        return true;
+      }
+      return false;
+    };
+
+    // フォールバック: 古い方法
+    const fallbackCopy = (text: string) => {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
       try {
-        await navigator.clipboard.writeText(url);
+        document.execCommand('copy');
         setShowCopied(true);
         setTimeout(() => setShowCopied(false), 2000);
       } catch {
-        // クリップボードAPIも使えない場合
-        alert('URLをコピーできませんでした');
+        alert('URLをコピーできませんでした: ' + text);
       }
+
+      document.body.removeChild(textArea);
+    };
+
+    if (!copyToClipboard(url)) {
+      fallbackCopy(url);
     }
   };
 
