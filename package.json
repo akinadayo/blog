@@ -22,8 +22,10 @@
     "motion": "^12.23.25",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
+    "remark-directive": "^4.0.0",
+    "remark-directive-rehype": "^0.4.2",
     "tailwind-merge": "^3.4.0",
-    "tailwindcss": "^4.1.17"
-  },
-  "devDependencies": {}
+    "tailwindcss": "^4.1.17",
+    "unist-util-visit": "^5.0.0"
+  }
 }

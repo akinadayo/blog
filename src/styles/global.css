@@ -151,4 +151,149 @@
   .prose img {
     border-radius: 16px !important;
   }
+
+  /* Prose Typography - 見出しスタイル */
+  .prose h1 {
+    font-size: 2.25rem;
+    font-weight: 900;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+    color: hsl(190 70% 85%);
+  }
+
+  .prose h2 {
+    font-size: 1.875rem;
+    font-weight: 800;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.3;
+    color: hsl(190 70% 85%);
+    border-bottom: 2px solid hsl(190 70% 75% / 0.3);
+    padding-bottom: 0.5rem;
+  }
+
+  .prose h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+    color: hsl(190 70% 85%);
+  }
+
+  .prose h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+    color: hsl(190 70% 85%);
+  }
+
+  .prose h5 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+    color: hsl(190 70% 85%);
+  }
+
+  .prose h6 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+    color: hsl(200 50% 70%);
+  }
+
+  .prose p {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    line-height: 1.8;
+  }
+
+  .prose ul, .prose ol {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+  }
+
+  .prose li {
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .prose blockquote {
+    border-left: 4px solid hsl(190 70% 75%);
+    padding-left: 1rem;
+    margin: 1.5rem 0;
+    font-style: italic;
+    color: hsl(200 50% 70%);
+  }
+
+  .prose code {
+    background: hsl(230 20% 25%);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.875em;
+  }
+
+  .prose pre {
+    background: hsl(230 25% 18%);
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border: 1px solid hsl(190 70% 75% / 0.2);
+  }
+
+  .prose pre code {
+    background: transparent;
+    padding: 0;
+  }
+
+  .prose strong {
+    color: hsl(320 70% 80%);
+    font-weight: 700;
+  }
+
+  .prose del {
+    color: hsl(200 50% 60%);
+  }
+
+  /* Admonition スタイル (:::note, :::warning など) */
+  .admonition {
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+    border-radius: 8px;
+    border-left: 4px solid;
+  }
+
+  .admonition-note {
+    background: hsl(200 60% 20% / 0.3);
+    border-color: hsl(200 70% 60%);
+  }
+
+  .admonition-warning {
+    background: hsl(40 60% 20% / 0.3);
+    border-color: hsl(40 70% 60%);
+  }
+
+  .admonition-tip {
+    background: hsl(140 60% 20% / 0.3);
+    border-color: hsl(140 70% 60%);
+  }
+
+  .admonition-caution {
+    background: hsl(0 60% 20% / 0.3);
+    border-color: hsl(0 70% 60%);
+  }
+
+  .admonition-info {
+    background: hsl(280 60% 20% / 0.3);
+    border-color: hsl(280 70% 60%);
+  }
 }
