@@ -48,7 +48,7 @@ const formattedDate = pubDate.toLocaleDateString('ja-JP', {
   <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
     mermaid.initialize({
-      startOnLoad: true,
+      startOnLoad: false,
       theme: 'dark',
       themeVariables: {
         primaryColor: '#a855f7',
@@ -60,15 +60,15 @@ const formattedDate = pubDate.toLocaleDateString('ja-JP', {
       }
     });
 
-    // ```mermaid コードブロックを変換
-    document.querySelectorAll('pre code.language-mermaid').forEach((block) => {
-      const pre = block.parentElement;
+    // Astro形式: pre[data-language="mermaid"] を変換
+    document.querySelectorAll('pre[data-language="mermaid"]').forEach((pre) => {
+      const code = pre.textContent;
       const div = document.createElement('div');
       div.className = 'mermaid';
-      div.textContent = block.textContent;
+      div.textContent = code;
       pre.parentNode.replaceChild(div, pre);
     });
 
-    mermaid.run();
+    await mermaid.run();
   </script>
 </BaseLayout>
