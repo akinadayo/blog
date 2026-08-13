@@ -5,6 +5,7 @@ import { PostCard } from '../components/PostCard';
 import { RetroGameBackground } from '../components/RetroGameBackground';
 import { GameLauncher } from '../components/GameLauncher';
 import { HeroConsole } from '../components/HeroConsole';
+import { Leaderboard } from '../components/Leaderboard';
 
 const techPosts = await getCollection('tech', ({ data }) => !data.draft);
 const diaryPosts = await getCollection('diary', ({ data }) => !data.draft);
@@ -54,6 +55,8 @@ const allPosts = [
     </div>
     {allPosts.length === 0 && <div class="empty-state"><b>NO QUESTS YET</b><span>最初の記事を準備中です。</span></div>}
   </section>
+
+  <Leaderboard client:visible />
 
   <script>
     const hero = document.querySelector('.home-hero');

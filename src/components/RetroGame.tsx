@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion } from 'motion/react';
+import { communityApi, type CommunityScore } from '../lib/community';
 
 interface RetroGameProps {
   onClose: () => void;
@@ -44,6 +45,11 @@ export function RetroGame({ onClose }: RetroGameProps) {
   const touchStartRef = useRef<number | null>(null);
   const levelRef = useRef(1);
   const needsLevelResetRef = useRef(false);
+  const sessionIdRef = useRef<string | null>(null);
+  const [sessionReady, setSessionReady] = useState(false);
+  const [playerName, setPlayerName] = useState(() => typeof window === 'undefined' ? 'NEU' : localStorage.getItem('neulog-player-name') || 'NEU');
+  const [submitState, setSubmitState] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
+  const [ranking, setRanking] = useState<CommunityScore[]>([]);
 
   // ゲームの状態を同期
   useEffect(() => {
@@ -81,6 +87,13 @@ export function RetroGame({ onClose }: RetroGameProps) {
     setCombo(0);
     levelRef.current = 1;
     needsLevelResetRef.current = true;
+    sessionIdRef.current = null;
+    setSessionReady(false);
+    setSubmitState('idle');
+    setRanking([]);
+    communityApi<{ sessionId: string }>('start-game', { method: 'POST' })
+      .then(data => { sessionIdRef.current = data.sessionId; setSessionReady(true); })
+      .catch(() => { sessionIdRef.current = null; setSessionReady(false); });
   });
 
   const nextLevelRef = useRef(() => {
@@ -1025,6 +1038,35 @@ export function RetroGame({ onClose }: RetroGameProps) {
     needsLevelResetRef.current = true;
   };
 
+  const submitScore = async () => {
+    const name = playerName.trim().slice(0, 12) || 'PLAYER';
+    const sessionId = sessionIdRef.current;
+    if (!sessionId || submitState === 'sending' || submitState === 'done') return;
+    setSubmitState('sending');
+    try {
+      const data = await communityApi<{ leaderboard: CommunityScore[] }>('submit-score', {
+        method: 'POST',
+        body: { sessionId, name, score },
+      });
+      localStorage.setItem('neulog-player-name', name);
+      setPlayerName(name);
+      setRanking(data.leaderboard);
+      setSubmitState('done');
+      window.dispatchEvent(new CustomEvent('neulog-score-updated', { detail: data.leaderboard }));
+    } catch {
+      setSubmitState('error');
+    }
+  };
+
+  const scoreRegistration = <div className="score-register">
+    <label htmlFor="neulog-player-name">RANKING NAME</label>
+    <div><input id="neulog-player-name" value={playerName} maxLength={12} onChange={event => setPlayerName(event.target.value)} aria-label="ランキングに表示する名前" />
+      <button onClick={submitScore} disabled={!sessionReady || submitState === 'sending' || submitState === 'done'}>{submitState === 'sending' ? 'SENDING...' : submitState === 'done' ? 'REGISTERED!' : 'REGISTER SCORE'}</button></div>
+    {submitState === 'error' && <small>登録できませんでした。スコアは端末には残っています。</small>}
+    {!sessionReady && <small>ランキング通信は準備中です。ゲームはそのまま遊べます。</small>}
+    {ranking.length > 0 && <ol>{ranking.slice(0, 5).map((entry, index) => <li key={`${entry.player_name}-${index}`}><span>{index + 1}. {entry.player_name}</span><b>{entry.score.toLocaleString()}</b></li>)}</ol>}
+  </div>;
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -1068,7 +1110,7 @@ export function RetroGame({ onClose }: RetroGameProps) {
               animate={{ scale: 1 }}
               className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm"
             >
-              <div className="text-center space-y-6 p-8">
+              <div className="game-result-panel text-center space-y-3 p-4 md:p-8">
                 <motion.div
                   animate={{ scale: [1, 1.05, 1] }}
                   transition={{ duration: 0.5, repeat: Infinity }}
@@ -1086,6 +1128,7 @@ export function RetroGame({ onClose }: RetroGameProps) {
                     HIGH SCORE: {highScore}
                   </p>
                 </div>
+                {scoreRegistration}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <motion.button
                     whileHover={{ scale: 1.1 }}
@@ -1115,7 +1158,7 @@ export function RetroGame({ onClose }: RetroGameProps) {
               animate={{ scale: 1 }}
               className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm"
             >
-              <div className="text-center space-y-6 p-8">
+              <div className="game-result-panel text-center space-y-3 p-4 md:p-8">
                 <motion.div
                   animate={{
                     scale: [1, 1.1, 1],
@@ -1131,6 +1174,7 @@ export function RetroGame({ onClose }: RetroGameProps) {
                 <p className="text-xl md:text-2xl text-yellow-400 font-display">
                   FINAL SCORE: {score}
                 </p>
+                {scoreRegistration}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <motion.button
                     whileHover={{ scale: 1.1 }}

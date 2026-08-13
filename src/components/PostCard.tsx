@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
+import { getAllReactionCounts } from '../lib/community';
 
 interface PostCardProps {
   title: string;
@@ -14,6 +15,12 @@ interface PostCardProps {
 }
 
 export function PostCard({ title, excerpt, date, category, slug, collection, coverImage, index = 0, featured = false }: PostCardProps) {
+  const [reactions, setReactions] = useState<Record<string, number>>({});
+  useEffect(() => {
+    getAllReactionCounts().then(all => setReactions(all[`${collection}/${slug}`] || {})).catch(() => {});
+  }, [collection, slug]);
+  const blocks = [reactions.spark || 0, reactions.try || 0, reactions.broke || 0];
+  const totalReactions = blocks.reduce((sum, value) => sum + value, 0);
   return (
     <motion.article
       className={`log-card ${featured ? 'log-card--featured' : ''}`}
@@ -37,6 +44,10 @@ export function PostCard({ title, excerpt, date, category, slug, collection, cov
           <time>{date}</time>
           <h3>{title}</h3>
           {excerpt && <p>{excerpt}</p>}
+          {totalReactions > 0 && <div className="log-card__reactions" aria-label={`${totalReactions} reactions`}>
+            {blocks.map((count, group) => Array.from({ length: Math.min(count, 7) }, (_, i) => <i key={`${group}-${i}`} className={`reaction-brick reaction-brick--${group}`} />))}
+            <span>{totalReactions} BLOCKS</span>
+          </div>}
           <span className="log-card__read">READ QUEST <b>↗</b></span>
         </div>
       </a>

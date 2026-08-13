@@ -2,6 +2,7 @@
 import BaseLayout from './BaseLayout.astro';
 import { PostHeader } from '../components/PostHeader';
 import { PostFooter } from '../components/PostFooter';
+import { ArticleReactions } from '../components/ArticleReactions';
 
 interface Props {
   title: string;
@@ -38,6 +39,7 @@ const formattedDate = pubDate.toLocaleDateString('ja-JP', {
       <article class="prose article-body">
         <slot />
       </article>
+      <ArticleReactions client:visible slug={`${category}/${slug}`} />
       <PostFooter client:load />
     </div>
   </div>

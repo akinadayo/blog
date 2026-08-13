@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "./ui/button";
-import { Heart, Share2, Bookmark, Check } from "lucide-react";
+import { Share2, Bookmark, Check } from "lucide-react";
 
 interface PostActionsProps {
   slug: string;
@@ -8,30 +8,14 @@ interface PostActionsProps {
 }
 
 export function PostActions({ slug, title }: PostActionsProps) {
-  const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
 
   // localStorageから状態を読み込む
   useEffect(() => {
-    const likes = JSON.parse(localStorage.getItem('post-likes') || '[]');
     const bookmarks = JSON.parse(localStorage.getItem('post-bookmarks') || '[]');
-    setIsLiked(likes.includes(slug));
     setIsBookmarked(bookmarks.includes(slug));
   }, [slug]);
-
-  const handleLike = () => {
-    const likes = JSON.parse(localStorage.getItem('post-likes') || '[]');
-    if (isLiked) {
-      const newLikes = likes.filter((s: string) => s !== slug);
-      localStorage.setItem('post-likes', JSON.stringify(newLikes));
-      setIsLiked(false);
-    } else {
-      likes.push(slug);
-      localStorage.setItem('post-likes', JSON.stringify(likes));
-      setIsLiked(true);
-    }
-  };
 
   const handleBookmark = () => {
     const bookmarks = JSON.parse(localStorage.getItem('post-bookmarks') || '[]');
@@ -108,19 +92,6 @@ export function PostActions({ slug, title }: PostActionsProps) {
 
   return (
     <div className="flex gap-2">
-      <Button
-        aria-label={isLiked ? 'いいねを取り消す' : 'いいね'}
-        variant="outline"
-        size="icon"
-        className={`rounded-full transition-all ${
-          isLiked
-            ? 'bg-red-500/20 text-red-500 border-red-500/50 hover:bg-red-500/30'
-            : 'hover:bg-primary/10 hover:text-primary hover:border-primary/50'
-        }`}
-        onClick={handleLike}
-      >
-        <Heart size={18} className={isLiked ? 'fill-current' : ''} />
-      </Button>
       <Button
         aria-label={isBookmarked ? 'ブックマークを外す' : 'ブックマーク'}
         variant="outline"
