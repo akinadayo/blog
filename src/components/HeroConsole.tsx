@@ -94,7 +94,10 @@ export function HeroConsole() {
         </div>
         <div className="hero-console__controls">
           <div className="dpad"><i /><i /></div>
-          <div className="console-note">AUTOPLAY<br />30 FPS</div>
+          <div className="console-center">
+            <div className="console-speaker" aria-hidden="true"><i /><i /><i /><i /><i /></div>
+            <div className="console-note">SELECT&nbsp;&nbsp;START</div>
+          </div>
           <div className="ab"><b>B</b><b>A</b></div>
         </div>
       </div>
