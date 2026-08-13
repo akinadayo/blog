@@ -6,6 +6,7 @@ import { RetroGameBackground } from '../components/RetroGameBackground';
 import { GameLauncher } from '../components/GameLauncher';
 import { HeroConsole } from '../components/HeroConsole';
 import { Leaderboard } from '../components/Leaderboard';
+import { VisitorTicket } from '../components/VisitorTicket';
 
 const techPosts = await getCollection('tech', ({ data }) => !data.draft);
 const diaryPosts = await getCollection('diary', ({ data }) => !data.draft);
@@ -25,6 +26,7 @@ const allPosts = [
         <div class="status-ribbon"><i></i> PLAYER 01 IS WRITING</div>
         <h1><span>MAKE.</span><span>BREAK.</span><em>WRITE!</em></h1>
         <p>技術を試して、たまに壊して、気づきを書く。<br />エンジニア NeU の実験ノート兼、寄り道だらけの冒険ログです。</p>
+        <VisitorTicket client:visible />
         <div class="hero-actions">
           <a href="#latest" class="pixel-button pixel-button--purple">READ LATEST ↘</a>
           <GameLauncher client:only="react" />

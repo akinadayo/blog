@@ -1,24 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { communityApi } from '../lib/community';
 
-export function VisitorTicket({ slug }: { slug: string }) {
+const SITE_VISITOR_KEY = 'site/neulog';
+
+export function VisitorTicket() {
   const [visitNumber, setVisitNumber] = useState<number | null>(null);
   const [offline, setOffline] = useState(false);
 
   useEffect(() => {
-    communityApi<{ visitNumber: number }>('visit', { method: 'POST', body: { slug } })
+    communityApi<{ visitNumber: number }>('visit', { method: 'POST', body: { slug: SITE_VISITOR_KEY } })
       .then(data => setVisitNumber(data.visitNumber))
       .catch(() => setOffline(true));
-  }, [slug]);
+  }, []);
 
   if (offline) return null;
 
-  return <aside className={`visitor-ticket ${visitNumber === null ? 'is-loading' : ''}`} aria-live="polite">
-    <div className="visitor-ticket__stub"><span>ADMIT</span><b>♥</b><i>ONE</i></div>
+  return <aside className={`visitor-ticket visitor-ticket--home ${visitNumber === null ? 'is-loading' : ''}`} aria-live="polite">
+    <div className="visitor-ticket__stub"><span>HELLO</span><b>♥</b><i>PLAYER</i></div>
     <div className="visitor-ticket__main">
-      <span>NeULOG VISITOR PASS</span>
+      <span>WELCOME TO NeULOG</span>
       <strong>No. {visitNumber === null ? '····' : String(visitNumber).padStart(4, '0')}</strong>
-      <p>{visitNumber === null ? '入場記録をロード中…' : `あなたはこの記事を訪れた ${visitNumber}人目の探索者です`}</p>
+      <p>{visitNumber === null ? 'プレイヤー番号をロード中…' : `あなたはこのブログを訪れた ${visitNumber}人目のプレイヤーです`}</p>
     </div>
     <div className="visitor-ticket__holes" aria-hidden="true">••••••</div>
   </aside>;

@@ -3,7 +3,6 @@ import BaseLayout from './BaseLayout.astro';
 import { PostHeader } from '../components/PostHeader';
 import { PostFooter } from '../components/PostFooter';
 import { ArticleReactions } from '../components/ArticleReactions';
-import { VisitorTicket } from '../components/VisitorTicket';
 
 interface Props {
   title: string;
@@ -37,7 +36,6 @@ const formattedDate = pubDate.toLocaleDateString('ja-JP', {
     />
 
     <div class="article-shell">
-      <VisitorTicket client:visible slug={`${category}/${slug}`} />
       <article class="prose article-body">
         <slot />
       </article>
