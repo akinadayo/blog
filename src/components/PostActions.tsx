@@ -109,6 +109,7 @@ export function PostActions({ slug, title }: PostActionsProps) {
   return (
     <div className="flex gap-2">
       <Button
+        aria-label={isLiked ? 'いいねを取り消す' : 'いいね'}
         variant="outline"
         size="icon"
         className={`rounded-full transition-all ${
@@ -121,6 +122,7 @@ export function PostActions({ slug, title }: PostActionsProps) {
         <Heart size={18} className={isLiked ? 'fill-current' : ''} />
       </Button>
       <Button
+        aria-label={isBookmarked ? 'ブックマークを外す' : 'ブックマーク'}
         variant="outline"
         size="icon"
         className={`rounded-full transition-all ${
@@ -133,6 +135,7 @@ export function PostActions({ slug, title }: PostActionsProps) {
         <Bookmark size={18} className={isBookmarked ? 'fill-current' : ''} />
       </Button>
       <Button
+        aria-label="記事を共有"
         variant="outline"
         size="icon"
         className={`rounded-full transition-all ${

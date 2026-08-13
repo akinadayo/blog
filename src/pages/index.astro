@@ -4,133 +4,74 @@ import { getCollection } from 'astro:content';
 import { PostCard } from '../components/PostCard';
 import { RetroGameBackground } from '../components/RetroGameBackground';
 import { GameLauncher } from '../components/GameLauncher';
-import { FadeIn, ScaleIn, BounceIn, SlideIn, Float } from '../components/ScrollAnimations';
-import { AnimatedTitle } from '../components/AnimatedTitle';
+import { HeroConsole } from '../components/HeroConsole';
 
 const techPosts = await getCollection('tech', ({ data }) => !data.draft);
 const diaryPosts = await getCollection('diary', ({ data }) => !data.draft);
-
 const allPosts = [
-  ...techPosts.map(post => ({
-    ...post,
-    category: 'tech',
-    description: post.data.description || '',
-    coverImage: post.data.coverImage,
-  })),
-  ...diaryPosts.map(post => ({
-    ...post,
-    category: 'diary',
-    description: '',
-    coverImage: post.data.coverImage,
-  })),
+  ...techPosts.map(post => ({ ...post, category: 'tech' as const, description: post.data.description || '', coverImage: post.data.coverImage })),
+  ...diaryPosts.map(post => ({ ...post, category: 'diary' as const, description: post.data.mood ? `今日の気分: ${post.data.mood}` : '', coverImage: post.data.coverImage })),
 ].sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 
-<BaseLayout title="HOME" currentPage="home">
-  <!-- Hero Section -->
-  <section class="relative overflow-hidden border-b-2 md:border-b-4 border-primary py-12 md:py-16 min-h-[70vh] md:min-h-0 flex items-center">
-    <!-- 背景に自動プレイゲーム -->
-    <div class="absolute inset-0 z-0">
-      <RetroGameBackground client:only="react" />
-      <!-- ぼかしとオーバーレイ（薄めに調整） -->
-      <div class="absolute inset-0 backdrop-blur-sm bg-background/30"></div>
-    </div>
-
-    <!-- ドット絵風の装飾 -->
-    <div class="absolute top-0 left-0 right-0 h-1 md:h-2 bg-accent z-10"></div>
-    <div class="absolute bottom-0 left-0 right-0 h-1 md:h-2 bg-secondary z-10"></div>
-
-    <div class="container mx-auto px-4 md:px-4 max-w-6xl relative z-10 w-full">
-      <div class="text-center space-y-5 md:space-y-6">
-        <!-- "PRESS START" 風バッジ -->
-        <div class="inline-block px-4 py-2 md:px-6 md:py-3 bg-muted border-2 md:border-4 border-accent animate-pulse">
-          <span class="text-xs md:text-xs text-accent font-display">★ WELCOME PLAYER ★</span>
+<BaseLayout title="HOME" currentPage="home" description="技術を試して、たまに壊して、気づきを書く。エンジニアNeUの実験ノート。">
+  <section id="top" class="home-hero">
+    <div class="home-hero__game" aria-hidden="true"><RetroGameBackground client:only="react" /></div>
+    <div class="home-hero__veil"></div>
+    <div class="hero-orbit hero-orbit--one"></div><div class="hero-orbit hero-orbit--two"></div>
+    <div class="home-hero__inner">
+      <div class="hero-copy">
+        <div class="status-ribbon"><i></i> PLAYER 01 IS WRITING</div>
+        <h1><span>MAKE.</span><span>BREAK.</span><em>WRITE!</em></h1>
+        <p>技術を試して、たまに壊して、気づきを書く。<br />エンジニア NeU の実験ノート兼、寄り道だらけの冒険ログです。</p>
+        <div class="hero-actions">
+          <a href="#latest" class="pixel-button pixel-button--purple">READ LATEST ↘</a>
+          <GameLauncher client:only="react" />
+          <button class="pixel-button pixel-button--ghost" data-side-quest>⚄ SIDE QUEST</button>
         </div>
-
-        <!-- ピクセルアート風タイトル -->
-        <AnimatedTitle client:only="react" />
-
-        <!-- 8bit風サブタイトル -->
-        <p class="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed px-4 md:px-4 font-jp-game">
-          技術的な学び、日々の発見、そして何気ない日常を記録する個人ブログ。
-        </p>
-
-        <!-- レトロなステータス表示 & INSERT COIN -->
-        <div class="inline-flex flex-col items-stretch pt-4 md:pt-4">
-          <FadeIn client:only="react" delay={0.3} className="flex items-center justify-center gap-3 md:gap-4">
-            {[
-              { label: 'ARTICLES', value: allPosts.length, color: 'text-accent' },
-              { label: 'UPDATES', value: 'SOMETIME', color: 'text-secondary' },
-            ].map((stat) => (
-              <div class="flex-1 px-4 py-2 md:px-4 md:py-3 bg-card border-2 md:border-4 border-primary">
-                <div class="text-xs md:text-xs text-muted-foreground font-display">{stat.label}</div>
-                <div class={`text-sm md:text-base font-semibold ${stat.color}`}>{stat.value}</div>
-              </div>
-            ))}
-          </FadeIn>
-
-          <!-- INSERT COIN ボタン -->
-          <BounceIn client:only="react" delay={0.4} className="pt-4 md:pt-4">
-            <GameLauncher client:only="react" />
-          </BounceIn>
-        </div>
-
-        <!-- "SCROLL TO START" 風メッセージ -->
-        <Float client:only="react" duration={2} className="text-sm md:text-sm text-foreground font-display pt-8 md:pt-10">
-          ▼ SCROLL TO START ▼
-        </Float>
+        <div class="side-quest-message" data-side-quest-message aria-live="polite"></div>
       </div>
+      <HeroConsole client:visible />
     </div>
+    <a class="scroll-cue" href="#latest"><span>SCROLL</span><i></i></a>
   </section>
 
-  <!-- Content Section -->
-  <div class="container mx-auto px-2 md:px-4 py-6 md:py-12 max-w-6xl">
-    <!-- セクションタイトル（ゲーム風） -->
-    <ScaleIn client:only="react" className="mb-4 md:mb-8 text-center">
-      <div class="inline-block px-4 py-2 md:px-8 md:py-4 bg-primary border-2 md:border-4 border-accent">
-        <h2 class="text-sm md:text-2xl text-primary-foreground font-display">
-          ═══ STAGE SELECT ═══
-        </h2>
-      </div>
-    </ScaleIn>
+  <div class="skill-marquee" aria-label="Topics">
+    <div><span>MODELING ✦</span><span>FAILED EXPERIMENTS ✦</span><span>REACT NATIVE ✦</span><span>AI TOOLS ✦</span><span>ELECTRONICS ✦</span><span>MODELING ✦</span><span>FAILED EXPERIMENTS ✦</span></div>
+  </div>
 
-    <!-- カテゴリフィルター（アーケード風） -->
-    <FadeIn client:only="react" delay={0.2} className="flex flex-wrap justify-center gap-2 md:gap-3 mb-4 md:mb-8">
-      <a href="/" class="px-3 py-1.5 md:px-6 md:py-3 text-[10px] md:text-xs border-2 md:border-4 bg-accent text-accent-foreground border-primary shadow-[2px_2px_0_0_hsl(280_100%_60%)] md:shadow-[4px_4px_0_0_hsl(280_100%_60%)] font-display hover:-translate-y-1 transition-transform">
-        ALL [{allPosts.length}]
-      </a>
-      <a href="/tech/" class="px-3 py-1.5 md:px-6 md:py-3 text-[10px] md:text-xs border-2 md:border-4 bg-card text-foreground border-secondary hover:bg-secondary hover:text-secondary-foreground hover:-translate-y-1 transition-all font-display">
-        TECH [{techPosts.length}]
-      </a>
-      <a href="/diary/" class="px-3 py-1.5 md:px-6 md:py-3 text-[10px] md:text-xs border-2 md:border-4 bg-card text-foreground border-secondary hover:bg-secondary hover:text-secondary-foreground hover:-translate-y-1 transition-all font-display">
-        DIARY [{diaryPosts.length}]
-      </a>
-    </FadeIn>
-
-    <!-- 記事グリッド -->
-    <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-6">
+  <section id="latest" class="logs-section">
+    <div class="section-kicker"><span>QUEST LOG / {String(allPosts.length).padStart(3, '0')} ENTRIES</span><b>LATEST EXPERIMENTS</b></div>
+    <div class="log-filters">
+      <a class="is-active" href="/">ALL <sup>{allPosts.length}</sup></a>
+      <a href="/tech/">TECH <sup>{techPosts.length}</sup></a>
+      <a href="/diary/">DIARY <sup>{diaryPosts.length}</sup></a>
+    </div>
+    <div class="logs-grid">
       {allPosts.map((post, index) => (
-        <PostCard
-          client:only="react"
-          title={post.data.title}
-          excerpt={post.description || ''}
-          date={post.data.pubDate.toLocaleDateString('ja-JP')}
-          category={post.category}
-          slug={post.slug}
-          collection={post.category as 'tech' | 'diary'}
-          coverImage={post.coverImage}
-          index={index}
-        />
+        <PostCard client:visible title={post.data.title} excerpt={post.description} date={post.data.pubDate.toLocaleDateString('ja-JP')} category={post.category} slug={post.slug} collection={post.category} coverImage={post.coverImage} index={index} featured={index === 0} />
       ))}
     </div>
+    {allPosts.length === 0 && <div class="empty-state"><b>NO QUESTS YET</b><span>最初の記事を準備中です。</span></div>}
+  </section>
 
-    {allPosts.length === 0 && (
-      <div class="text-center py-20">
-        <div class="inline-block px-8 py-6 bg-destructive border-4 border-accent">
-          <p class="text-base text-destructive-foreground font-display">GAME OVER</p>
-          <p class="text-sm text-destructive-foreground mt-2">NO DATA FOUND</p>
-        </div>
-      </div>
-    )}
-  </div>
+  <script>
+    const hero = document.querySelector('.home-hero');
+    const parallax = document.querySelector('[data-parallax]');
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (hero && parallax && !reduced) {
+      hero.addEventListener('pointermove', (event) => {
+        const rect = hero.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width - .5;
+        const y = (event.clientY - rect.top) / rect.height - .5;
+        parallax.style.setProperty('--parallax-x', `${x * 18}px`);
+        parallax.style.setProperty('--parallax-y', `${y * 14}px`);
+      }, { passive: true });
+    }
+    const quests = ['今日は知らないAPIを1つ触る。', '失敗したコードを1つメモに残す。', '机の上の積み回路を10分だけ動かす。', 'READMEを未来の自分向けに1行直す。'];
+    document.querySelector('[data-side-quest]')?.addEventListener('click', () => {
+      const target = document.querySelector('[data-side-quest-message]');
+      if (target) target.textContent = `SIDE QUEST: ${quests[Math.floor(Math.random() * quests.length)]}`;
+    });
+  </script>
 </BaseLayout>

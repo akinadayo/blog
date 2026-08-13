@@ -11,9 +11,7 @@
   "dependencies": {
     "@astrojs/react": "^4.4.2",
     "@radix-ui/react-avatar": "^1.1.11",
-    "@radix-ui/react-separator": "^1.1.8",
     "@radix-ui/react-slot": "^1.2.4",
-    "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.17",
     "astro": "^5.16.4",
     "class-variance-authority": "^0.7.1",
@@ -23,7 +21,6 @@
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "remark-directive": "^4.0.0",
-    "remark-directive-rehype": "^0.4.2",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.17",
     "unist-util-visit": "^5.0.0"

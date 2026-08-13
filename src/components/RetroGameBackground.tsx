@@ -107,9 +107,14 @@ export function RetroGameBackground() {
     let animationId: number;
     let lastFrameTime = 0;
     const frameInterval = 33; // 30FPS
+    let isVisible = true;
 
     // ゲームループ
     const gameLoop = (currentTime: number) => {
+      if (!isVisible || document.hidden) {
+        animationId = requestAnimationFrame(gameLoop);
+        return;
+      }
       // フレームレート制限
       if (currentTime - lastFrameTime < frameInterval) {
         animationId = requestAnimationFrame(gameLoop);
@@ -276,9 +281,14 @@ export function RetroGameBackground() {
     };
 
     window.addEventListener('resize', handleResize);
+    const observer = new IntersectionObserver(([entry]) => {
+      isVisible = entry.isIntersecting;
+    }, { threshold: 0.01 });
+    observer.observe(container);
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      observer.disconnect();
       if (animationId) {
         cancelAnimationFrame(animationId);
       }
