@@ -28,13 +28,15 @@ const allPosts = [
         <p>技術を試して、たまに壊して、気づきを書く。<br />エンジニア NeU の実験ノート兼、寄り道だらけの冒険ログです。</p>
         <VisitorTicket client:visible />
         <div class="hero-actions">
-          <a href="#latest" class="pixel-button pixel-button--purple">READ LATEST ↘</a>
-          <GameLauncher client:only="react" />
+          <a href="#latest" class="pixel-button pixel-button--purple hero-latest">READ LATEST ↘</a>
           <button class="pixel-button pixel-button--ghost" data-side-quest>⚄ SIDE QUEST</button>
         </div>
         <div class="side-quest-message" data-side-quest-message aria-live="polite"></div>
       </div>
-      <HeroConsole client:visible />
+      <div class="hero-console-stack">
+        <HeroConsole client:visible />
+        <GameLauncher client:only="react" />
+      </div>
     </div>
     <a class="scroll-cue" href="#latest"><span>SCROLL</span><i></i></a>
   </section>
