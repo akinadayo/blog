@@ -14,7 +14,7 @@ export function GameLauncher() {
   return (
     <>
       <button onClick={() => setIsGameOpen(true)} className="pixel-button pixel-button--pink game-launcher-button">
-        <span aria-hidden="true">▶</span> PRESS START · PLAY
+        <span aria-hidden="true">▶</span> PRESS START<span className="game-launcher-suffix"> · PLAY</span>
       </button>
       <AnimatePresence>
         {isGameOpen && <RetroGame onClose={() => setIsGameOpen(false)} />}
