@@ -37,8 +37,8 @@ export function PostCard({ title, excerpt, date, category, slug, collection, cov
               <i />
             </div>
           )}
-          <span className={`log-card__category log-card__category--${collection}`}>{category.toUpperCase()}</span>
-          <span className="log-card__number">LOG {String(index + 1).padStart(2, '0')}</span>
+          <span className={`log-card__category log-card__category--${collection}`}>{collection === 'tech' ? '技術' : '日記'}</span>
+          <span className="log-card__number">No. {String(index + 1).padStart(2, '0')}</span>
         </div>
         <div className="log-card__body">
           <time>{date}</time>
@@ -46,9 +46,9 @@ export function PostCard({ title, excerpt, date, category, slug, collection, cov
           {excerpt && <p>{excerpt}</p>}
           {totalReactions > 0 && <div className="log-card__reactions" aria-label={`${totalReactions} reactions`}>
             {blocks.map((count, group) => Array.from({ length: Math.min(count, 7) }, (_, i) => <i key={`${group}-${i}`} className={`reaction-brick reaction-brick--${group}`} />))}
-            <span>{totalReactions} BLOCKS</span>
+            <span>{totalReactions} ブロック</span>
           </div>}
-          <span className="log-card__read">READ QUEST <b>↗</b></span>
+          <span className="log-card__read">記事を読む <b>↗</b></span>
         </div>
       </a>
     </motion.article>

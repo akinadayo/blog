@@ -23,13 +23,13 @@ const allPosts = [
     <div class="hero-orbit hero-orbit--one"></div><div class="hero-orbit hero-orbit--two"></div>
     <div class="home-hero__inner">
       <div class="hero-copy">
-        <div class="status-ribbon"><i></i> PLAYER 01 IS WRITING</div>
+        <div class="status-ribbon"><i></i> PLAYER 01 / CREATING</div>
         <h1><span>MAKE.</span><span>BREAK.</span><em>WRITE!</em></h1>
         <p>技術を試して、たまに壊して、気づきを書く。<br />エンジニア NeU の実験ノート兼、寄り道だらけの冒険ログです。</p>
         <VisitorTicket client:visible />
         <div class="hero-actions">
-          <a href="#latest" class="pixel-button pixel-button--purple hero-latest">READ LATEST ↘</a>
-          <button class="pixel-button pixel-button--ghost" data-side-quest>⚄ SIDE QUEST</button>
+          <a href="#latest" class="pixel-button pixel-button--purple hero-latest">最新の記事を読む ↘</a>
+          <button class="pixel-button pixel-button--ghost" data-side-quest>⚄ おまけを引く</button>
         </div>
         <div class="side-quest-message" data-side-quest-message aria-live="polite"></div>
       </div>
@@ -38,26 +38,26 @@ const allPosts = [
         <GameLauncher client:only="react" />
       </div>
     </div>
-    <a class="scroll-cue" href="#latest"><span>SCROLL</span><i></i></a>
+    <a class="scroll-cue" href="#latest"><span>記事へ</span><i></i></a>
   </section>
 
   <div class="skill-marquee" aria-label="Topics">
-    <div><span>MODELING ✦</span><span>FAILED EXPERIMENTS ✦</span><span>REACT NATIVE ✦</span><span>AI TOOLS ✦</span><span>ELECTRONICS ✦</span><span>MODELING ✦</span><span>FAILED EXPERIMENTS ✦</span></div>
+    <div><span>3D MODELING ✦</span><span>FAILED EXPERIMENTS ✦</span><span>REACT NATIVE ✦</span><span>AI LAB ✦</span><span>ELECTRONICS ✦</span><span>3D MODELING ✦</span><span>FAILED EXPERIMENTS ✦</span></div>
   </div>
 
   <section id="latest" class="logs-section">
-    <div class="section-kicker"><span>QUEST LOG / {String(allPosts.length).padStart(3, '0')} ENTRIES</span><b>LATEST EXPERIMENTS</b></div>
+    <div class="section-kicker"><span>実験ログ / {String(allPosts.length).padStart(3, '0')}件</span><b>最新の記事</b></div>
     <div class="log-filters">
-      <a class="is-active" href="/">ALL <sup>{allPosts.length}</sup></a>
-      <a href="/tech/">TECH <sup>{techPosts.length}</sup></a>
-      <a href="/diary/">DIARY <sup>{diaryPosts.length}</sup></a>
+      <a class="is-active" href="/">すべて <sup>{allPosts.length}</sup></a>
+      <a href="/tech/">技術 <sup>{techPosts.length}</sup></a>
+      <a href="/diary/">日記 <sup>{diaryPosts.length}</sup></a>
     </div>
     <div class="logs-grid">
       {allPosts.map((post, index) => (
         <PostCard client:visible title={post.data.title} excerpt={post.description} date={post.data.pubDate.toLocaleDateString('ja-JP')} category={post.category} slug={post.slug} collection={post.category} coverImage={post.coverImage} index={index} featured={index === 0} />
       ))}
     </div>
-    {allPosts.length === 0 && <div class="empty-state"><b>NO QUESTS YET</b><span>最初の記事を準備中です。</span></div>}
+    {allPosts.length === 0 && <div class="empty-state"><b>まだ記事がありません</b><span>最初の記事を準備中です。</span></div>}
   </section>
 
   <Leaderboard client:visible />
@@ -78,7 +78,7 @@ const allPosts = [
     const quests = ['今日は知らないAPIを1つ触る。', '失敗したコードを1つメモに残す。', '机の上の積み回路を10分だけ動かす。', 'READMEを未来の自分向けに1行直す。'];
     document.querySelector('[data-side-quest]')?.addEventListener('click', () => {
       const target = document.querySelector('[data-side-quest-message]');
-      if (target) target.textContent = `SIDE QUEST: ${quests[Math.floor(Math.random() * quests.length)]}`;
+      if (target) target.textContent = `今日のおまけ：${quests[Math.floor(Math.random() * quests.length)]}`;
     });
   </script>
 </BaseLayout>

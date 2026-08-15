@@ -5,9 +5,9 @@ import { PostCard } from '../../components/PostCard';
 const posts = (await getCollection('tech', ({ data }) => !data.draft)).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 <BaseLayout title="TECH LOG" currentPage="post" description="NeUの技術実験ログ一覧">
-  <section class="archive-hero archive-hero--tech"><span>COLLECTION / TECH</span><h1>TECH<br />EXPERIMENTS</h1><p>つくって、壊して、理解したこと。</p></section>
+  <section class="archive-hero archive-hero--tech"><span>コレクション / 技術</span><h1>技術の<br />実験ログ</h1><p>つくって、壊して、理解したこと。</p></section>
   <section class="logs-section logs-section--archive">
-    <div class="log-filters"><a href="/">ALL</a><a class="is-active" href="/tech/">TECH <sup>{posts.length}</sup></a><a href="/diary/">DIARY</a></div>
+    <div class="log-filters"><a href="/">すべて</a><a class="is-active" href="/tech/">技術 <sup>{posts.length}</sup></a><a href="/diary/">日記</a></div>
     <div class="logs-grid">{posts.map((post, index) => <PostCard client:visible title={post.data.title} excerpt={post.data.description} date={post.data.pubDate.toLocaleDateString('ja-JP')} category="tech" slug={post.slug} collection="tech" coverImage={post.data.coverImage} index={index} featured={index === 0} />)}</div>
   </section>
 </BaseLayout>

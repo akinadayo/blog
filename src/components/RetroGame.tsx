@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { communityApi, type CommunityScore } from '../lib/community';
 
@@ -6,7 +6,18 @@ interface RetroGameProps {
   onClose: () => void;
 }
 
-type GameState = 'ready' | 'playing' | 'paused' | 'gameover' | 'win' | 'levelclear';
+type GameState = 'ready' | 'playing' | 'paused' | 'gameover' | 'win';
+
+const RUN_NAME = 'スコアアタック';
+
+const NAME_ADJECTIVES = ['ぴか', 'きら', 'もふ', 'ぷに', 'ふわ', 'どき', 'わく', 'ねむ', 'ちび', 'るん', 'ぽよ', 'めが'];
+const NAME_NOUNS = ['うさぎ', 'こねこ', 'スライム', 'ドラゴン', 'パドル', 'ほうせき', 'スター', 'まおう', 'けんし', 'きつね', 'ブロック', 'まほう'];
+const NAME_SUFFIXES = ['', '', '', '★', '♪', 'DX', '3', 'Z', 'さん', 'まる', 'JP'];
+
+const generatePlayerName = () => {
+  const pick = (words: string[]) => words[Math.floor(Math.random() * words.length)];
+  return `${pick(NAME_ADJECTIVES)}${pick(NAME_NOUNS)}${pick(NAME_SUFFIXES)}`.slice(0, 12);
+};
 
 interface Particle {
   x: number;
@@ -30,7 +41,6 @@ export function RetroGame({ onClose }: RetroGameProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
-  const [level, setLevel] = useState(1);
   const [highScore, setHighScore] = useState(() => {
     if (typeof window !== 'undefined') {
       return parseInt(localStorage.getItem('brickBreaker_highScore') || '0');
@@ -40,29 +50,23 @@ export function RetroGame({ onClose }: RetroGameProps) {
   const highScoreRef = useRef(highScore);
   const [gameState, setGameState] = useState<GameState>('ready');
   const [combo, setCombo] = useState(0);
+  const [runBonus, setRunBonus] = useState(0);
   const gameLoopRef = useRef<number>();
   const gameStateRef = useRef<GameState>('ready');
   const touchStartRef = useRef<number | null>(null);
-  const levelRef = useRef(1);
-  const needsLevelResetRef = useRef(false);
+  const needsRunResetRef = useRef(false);
+  const needsFullResetRef = useRef(false);
   const sessionIdRef = useRef<string | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
   const [playerName, setPlayerName] = useState(() => typeof window === 'undefined' ? 'NEU' : localStorage.getItem('neulog-player-name') || 'NEU');
   const [submitState, setSubmitState] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
   const [ranking, setRanking] = useState<CommunityScore[]>([]);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   // ゲームの状態を同期
   useEffect(() => {
     gameStateRef.current = gameState;
   }, [gameState]);
-
-  // レベル変更時のフラグ
-  useEffect(() => {
-    levelRef.current = level;
-    if (level > 1) {
-      needsLevelResetRef.current = true;
-    }
-  }, [level]);
 
   // ハイスコア保存
   useEffect(() => {
@@ -75,18 +79,32 @@ export function RetroGame({ onClose }: RetroGameProps) {
       highScoreRef.current = score;
       if (typeof window !== 'undefined') {
         localStorage.setItem('brickBreaker_highScore', score.toString());
+        window.dispatchEvent(new CustomEvent('neulog-personal-best', { detail: score }));
       }
     }
   }, [score]);
+
+  // クリア後は名前入力を主操作として自動フォーカス
+  useEffect(() => {
+    if (gameState !== 'win') return;
+    const focusTimer = window.setTimeout(() => {
+      const input = nameInputRef.current;
+      if (!input) return;
+      input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      input.focus({ preventScroll: true });
+      input.select();
+    }, 300);
+    return () => window.clearTimeout(focusTimer);
+  }, [gameState]);
 
   const startGameRef = useRef(() => {
     setGameState('playing');
     setScore(0);
     setLives(3);
-    setLevel(1);
     setCombo(0);
-    levelRef.current = 1;
-    needsLevelResetRef.current = true;
+    setRunBonus(0);
+    needsRunResetRef.current = true;
+    needsFullResetRef.current = true;
     sessionIdRef.current = null;
     setSessionReady(false);
     setSubmitState('idle');
@@ -96,13 +114,7 @@ export function RetroGame({ onClose }: RetroGameProps) {
       .catch(() => { sessionIdRef.current = null; setSessionReady(false); });
   });
 
-  const nextLevelRef = useRef(() => {
-    setLevel(prev => prev + 1);
-    setGameState('playing');
-  });
-
   const startGame = startGameRef.current;
-  const nextLevel = nextLevelRef.current;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -128,20 +140,21 @@ export function RetroGame({ onClose }: RetroGameProps) {
     let { width: CANVAS_WIDTH, height: CANVAS_HEIGHT } = updateCanvasSize();
 
     // ゲーム設定（相対サイズ）
-    const getGameConfig = (currentLevel: number = levelRef.current) => {
+    const getGameConfig = () => {
       const scale = CANVAS_WIDTH / 800;
+      const cols = 9;
       return {
-        PADDLE_WIDTH: 120 * scale,
+        PADDLE_WIDTH: 118 * scale,
         PADDLE_HEIGHT: 16 * scale,
         BALL_RADIUS: 10 * scale,
-        BRICK_ROWS: 5 + Math.min(currentLevel - 1, 3),
-        BRICK_COLS: Math.floor(CANVAS_WIDTH / (80 * scale)),
-        BRICK_WIDTH: (CANVAS_WIDTH - 40 * scale) / Math.floor(CANVAS_WIDTH / (80 * scale)) - 8 * scale,
+        BRICK_ROWS: 5,
+        BRICK_COLS: cols,
+        BRICK_WIDTH: (CANVAS_WIDTH - 40 * scale) / cols - 8 * scale,
         BRICK_HEIGHT: 24 * scale,
         BRICK_PADDING: 8 * scale,
-        BRICK_OFFSET_TOP: 80 * scale,
+        BRICK_OFFSET_TOP: 86 * scale,
         BRICK_OFFSET_LEFT: 20 * scale,
-        BALL_SPEED: (3 + currentLevel * 0.3) * scale,
+        BALL_SPEED: 3.65 * scale,
         scale,
       };
     };
@@ -185,7 +198,7 @@ export function RetroGame({ onClose }: RetroGameProps) {
     const launchBall = () => {
       if (ballWaiting && balls.length > 0) {
         ballWaiting = false;
-        balls[0].dx = config.BALL_SPEED * (Math.random() > 0.5 ? 1 : -1);
+        balls[0].dx = config.BALL_SPEED * 0.72;
         balls[0].dy = -config.BALL_SPEED;
       }
     };
@@ -201,9 +214,13 @@ export function RetroGame({ onClose }: RetroGameProps) {
       hitPoints: number;
       maxHitPoints: number;
       hasPowerUp: boolean;
+      powerUpType?: PowerUp['type'];
+      kind: 'normal' | 'armor' | 'bonus';
     };
 
     let bricks: Brick[][] = [];
+    let runBrickTotal = 0;
+    let runResolved = false;
 
     const createBricks = () => {
       // ブログテーマカラー
@@ -219,19 +236,34 @@ export function RetroGame({ onClose }: RetroGameProps) {
       ];
 
       bricks = [];
+      runBrickTotal = 0;
+      runResolved = false;
+      const layoutSeed = 1;
+      const powerUpTypes: PowerUp['type'][] = ['wide', 'multi', 'slow', 'life'];
       for (let row = 0; row < config.BRICK_ROWS; row++) {
         bricks[row] = [];
         for (let col = 0; col < config.BRICK_COLS; col++) {
-          const hitPoints = row < 2 ? Math.min(levelRef.current, 3) : 1;
+          const isGap =
+            (row === 0 && (col < 2 || col > 6)) ||
+            (row === 2 && col % 2 === 1);
+          const isBonus = !isGap && (row * 3 + col + layoutSeed) % 11 === 0;
+          const isArmor = !isGap && !isBonus && (row === 0 || (row === 1 && col % 3 === 1));
+          const kind: Brick['kind'] = isBonus ? 'bonus' : isArmor ? 'armor' : 'normal';
+          const hitPoints = isArmor ? 2 : 1;
           const colorIndex = row % colors.length;
+          const powerIndex = row * 7 + col * 3 + layoutSeed;
+          const hasPowerUp = !isGap && !isBonus && powerIndex % 13 === 0;
+          if (!isGap) runBrickTotal++;
           bricks[row][col] = {
             x: col * (config.BRICK_WIDTH + config.BRICK_PADDING) + config.BRICK_OFFSET_LEFT,
             y: row * (config.BRICK_HEIGHT + config.BRICK_PADDING) + config.BRICK_OFFSET_TOP,
-            status: 1,
-            color: colors[colorIndex][0],
+            status: isGap ? 0 : 1,
+            color: isBonus ? 'hsl(190, 78%, 88%)' : colors[colorIndex][0],
             hitPoints,
             maxHitPoints: hitPoints,
-            hasPowerUp: Math.random() < 0.15,
+            hasPowerUp,
+            powerUpType: hasPowerUp ? powerUpTypes[powerIndex % powerUpTypes.length] : undefined,
+            kind,
           };
         }
       }
@@ -265,9 +297,7 @@ export function RetroGame({ onClose }: RetroGameProps) {
       slow: 0,
     };
 
-    const createPowerUp = (x: number, y: number) => {
-      const types: PowerUp['type'][] = ['wide', 'multi', 'slow', 'life'];
-      const type = types[Math.floor(Math.random() * types.length)];
+    const createPowerUp = (x: number, y: number, type: PowerUp['type']) => {
       powerUps.push({
         x,
         y,
@@ -282,6 +312,9 @@ export function RetroGame({ onClose }: RetroGameProps) {
     let comboTimer = 0;
     let currentLives = 3;
     let shakeIntensity = 0;
+    let precisionArmed = false;
+    let precisionFlash = 0;
+    let runFrames = 0;
 
     // 入力処理
     const keys: { [key: string]: boolean } = {};
@@ -294,8 +327,6 @@ export function RetroGame({ onClose }: RetroGameProps) {
       } else if (e.key === ' ' || e.key === 'Enter') {
         if (gameStateRef.current === 'ready') {
           startGame();
-        } else if (gameStateRef.current === 'levelclear') {
-          nextLevel();
         } else if (gameStateRef.current === 'playing' && ballWaiting) {
           launchBall();
         }
@@ -343,8 +374,6 @@ export function RetroGame({ onClose }: RetroGameProps) {
       }
       if (gameStateRef.current === 'ready') {
         startGame();
-      } else if (gameStateRef.current === 'levelclear') {
-        nextLevel();
       } else if (gameStateRef.current === 'playing' && ballWaiting) {
         launchBall();
       }
@@ -353,8 +382,6 @@ export function RetroGame({ onClose }: RetroGameProps) {
     const handleClick = () => {
       if (gameStateRef.current === 'ready') {
         startGame();
-      } else if (gameStateRef.current === 'levelclear') {
-        nextLevel();
       } else if (gameStateRef.current === 'playing' && ballWaiting) {
         launchBall();
       }
@@ -514,6 +541,26 @@ export function RetroGame({ onClose }: RetroGameProps) {
       );
       ctx.fill();
 
+      if (brick.kind === 'armor') {
+        ctx.strokeStyle = 'hsl(190, 78%, 90%)';
+        ctx.lineWidth = 2 * config.scale;
+        ctx.strokeRect(
+          brick.x + 4 * config.scale,
+          brick.y + 4 * config.scale,
+          config.BRICK_WIDTH - 8 * config.scale,
+          config.BRICK_HEIGHT - 8 * config.scale
+        );
+      } else if (brick.kind === 'bonus') {
+        ctx.fillStyle = 'hsl(236, 40%, 16%)';
+        ctx.beginPath();
+        ctx.moveTo(brick.x + config.BRICK_WIDTH / 2, brick.y + 5 * config.scale);
+        ctx.lineTo(brick.x + config.BRICK_WIDTH / 2 + 6 * config.scale, brick.y + config.BRICK_HEIGHT / 2);
+        ctx.lineTo(brick.x + config.BRICK_WIDTH / 2, brick.y + config.BRICK_HEIGHT - 5 * config.scale);
+        ctx.lineTo(brick.x + config.BRICK_WIDTH / 2 - 6 * config.scale, brick.y + config.BRICK_HEIGHT / 2);
+        ctx.closePath();
+        ctx.fill();
+      }
+
       // ダメージ表示
       if (healthRatio < 1) {
         ctx.strokeStyle = 'hsla(0, 0%, 0%, 0.5)';
@@ -571,7 +618,7 @@ export function RetroGame({ onClose }: RetroGameProps) {
           case 'wide': color = 'hsl(190, 70%, 75%)'; icon = '⬌'; break;   // primary
           case 'multi': color = 'hsl(320, 70%, 80%)'; icon = '×3'; break; // accent
           case 'slow': color = 'hsl(280, 60%, 75%)'; icon = '▼'; break;   // secondary
-          case 'life': color = 'hsl(0, 70%, 70%)'; icon = '♥'; break;     // destructive
+          case 'life': color = 'hsl(320, 70%, 80%)'; icon = '♥'; break;
         }
 
         // グロー
@@ -600,7 +647,7 @@ export function RetroGame({ onClose }: RetroGameProps) {
       // スコア (accent)
       ctx.fillStyle = 'hsl(320, 70%, 80%)';
       ctx.textAlign = 'left';
-      ctx.fillText(`SCORE: ${currentScore}`, 15 * config.scale, 30 * config.scale);
+      ctx.fillText(`スコア ${currentScore}`, 15 * config.scale, 30 * config.scale);
 
       // ハイスコア (secondary)
       ctx.fillStyle = 'hsl(280, 60%, 75%)';
@@ -610,23 +657,37 @@ export function RetroGame({ onClose }: RetroGameProps) {
       // レベル (primary)
       ctx.fillStyle = 'hsl(190, 70%, 75%)';
       ctx.textAlign = 'right';
-      ctx.fillText(`LV ${levelRef.current}`, CANVAS_WIDTH - 15 * config.scale, 30 * config.scale);
+      ctx.fillText('ONE RUN', CANVAS_WIDTH - 15 * config.scale, 30 * config.scale);
 
       // ライフ (destructive)
       ctx.textAlign = 'left';
-      ctx.fillStyle = 'hsl(0, 70%, 70%)';
+      ctx.fillStyle = 'hsl(320, 70%, 80%)';
       let lifeText = '';
       for (let i = 0; i < currentLives; i++) {
         lifeText += '♥ ';
       }
       ctx.fillText(lifeText, 15 * config.scale, 55 * config.scale);
 
+      const remaining = bricks.flat().filter(brick => brick.status === 1).length;
+      ctx.fillStyle = 'hsl(190, 70%, 82%)';
+      ctx.textAlign = 'right';
+      ctx.font = `bold ${Math.max(10, 12 * config.scale)}px "Press Start 2P", monospace`;
+      ctx.fillText(`残り ${remaining}/${runBrickTotal}`, CANVAS_WIDTH - 15 * config.scale, 55 * config.scale);
+
+      if (precisionArmed || precisionFlash > 0) {
+        ctx.fillStyle = precisionArmed ? 'hsl(320, 70%, 84%)' : 'hsla(320, 70%, 84%, .55)';
+        ctx.textAlign = 'center';
+        ctx.font = `bold ${Math.max(11, 13 * config.scale)}px "Press Start 2P", monospace`;
+        ctx.fillText(precisionArmed ? 'EDGE ×2 READY' : 'EDGE SHOT!', CANVAS_WIDTH / 2, 57 * config.scale);
+      }
+
       // コンボ (accent)
       if (currentCombo > 1) {
+        const chainMultiplier = 1 + Math.min(3, Math.floor((currentCombo - 1) / 4));
         ctx.fillStyle = `hsla(320, 70%, 80%, ${Math.min(1, comboTimer / 30)})`;
         ctx.textAlign = 'center';
         ctx.font = `bold ${Math.max(20, 24 * config.scale)}px "Press Start 2P", monospace`;
-        ctx.fillText(`${currentCombo}x COMBO!`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+        ctx.fillText(`${currentCombo} CHAIN  ×${chainMultiplier}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
       }
 
       // 待機中メッセージ
@@ -636,7 +697,7 @@ export function RetroGame({ onClose }: RetroGameProps) {
         ctx.textAlign = 'center';
         ctx.font = `bold ${Math.max(10, 12 * config.scale)}px "Press Start 2P", monospace`;
         ctx.fillText(
-          isMobile ? 'TAP TO LAUNCH' : 'CLICK OR SPACE TO LAUNCH',
+          isMobile ? 'タップで発射' : 'クリック / SPACEで発射',
           CANVAS_WIDTH / 2,
           CANVAS_HEIGHT - 20 * config.scale
         );
@@ -654,22 +715,22 @@ export function RetroGame({ onClose }: RetroGameProps) {
 
       ctx.fillStyle = 'hsl(190, 70%, 75%)'; // primary
       ctx.font = `bold ${Math.max(14, 16 * config.scale)}px "Press Start 2P", monospace`;
-      ctx.fillText(`LEVEL ${levelRef.current}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 20 * config.scale);
+      ctx.fillText(`1面完結 / ${RUN_NAME}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 20 * config.scale);
 
       ctx.fillStyle = 'hsl(280, 60%, 75%)'; // secondary
       ctx.font = `bold ${Math.max(12, 14 * config.scale)}px "Press Start 2P", monospace`;
 
       const isMobile = 'ontouchstart' in window;
       if (isMobile) {
-        ctx.fillText('TAP TO START', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 30 * config.scale);
+        ctx.fillText('タップして開始', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 30 * config.scale);
         ctx.fillStyle = 'hsl(190, 70%, 85%)'; // foreground
         ctx.font = `${Math.max(10, 12 * config.scale)}px sans-serif`;
-        ctx.fillText('スワイプでパドル操作', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 60 * config.scale);
+        ctx.fillText('端で返すと、次の破壊スコアが2倍', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 60 * config.scale);
       } else {
-        ctx.fillText('CLICK OR PRESS SPACE', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 30 * config.scale);
+        ctx.fillText('クリック / SPACEで開始', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 30 * config.scale);
         ctx.fillStyle = 'hsl(190, 70%, 85%)'; // foreground
         ctx.font = `${Math.max(10, 12 * config.scale)}px sans-serif`;
-        ctx.fillText('← → キーまたはマウスで操作', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 60 * config.scale);
+        ctx.fillText('端で返すと、次の破壊スコアが2倍', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 60 * config.scale);
       }
     };
 
@@ -680,30 +741,11 @@ export function RetroGame({ onClose }: RetroGameProps) {
       ctx.fillStyle = 'hsl(320, 70%, 80%)'; // accent
       ctx.font = `bold ${Math.max(24, 32 * config.scale)}px "Press Start 2P", monospace`;
       ctx.textAlign = 'center';
-      ctx.fillText('PAUSED', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+      ctx.fillText('一時停止', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
 
       ctx.fillStyle = 'hsl(190, 70%, 75%)'; // primary
       ctx.font = `bold ${Math.max(12, 14 * config.scale)}px "Press Start 2P", monospace`;
-      ctx.fillText('PRESS ESC TO RESUME', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 40 * config.scale);
-    };
-
-    const drawLevelClearScreen = () => {
-      ctx.fillStyle = 'hsla(0, 0%, 0%, 0.7)';
-      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-      ctx.fillStyle = 'hsl(190, 70%, 75%)'; // primary
-      ctx.font = `bold ${Math.max(24, 32 * config.scale)}px "Press Start 2P", monospace`;
-      ctx.textAlign = 'center';
-      ctx.fillText('LEVEL CLEAR!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 40 * config.scale);
-
-      ctx.fillStyle = 'hsl(320, 70%, 80%)'; // accent
-      ctx.font = `bold ${Math.max(16, 20 * config.scale)}px "Press Start 2P", monospace`;
-      ctx.fillText(`SCORE: ${currentScore}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 10 * config.scale);
-
-      ctx.fillStyle = 'hsl(280, 60%, 75%)'; // secondary
-      ctx.font = `bold ${Math.max(12, 14 * config.scale)}px "Press Start 2P", monospace`;
-      const isMobile = 'ontouchstart' in window;
-      ctx.fillText(isMobile ? 'TAP FOR NEXT LEVEL' : 'CLICK FOR NEXT LEVEL', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 60 * config.scale);
+      ctx.fillText('ESCで再開', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 40 * config.scale);
     };
 
     // 衝突検出
@@ -752,17 +794,25 @@ export function RetroGame({ onClose }: RetroGameProps) {
                 if (brick.hasPowerUp) {
                   createPowerUp(
                     brick.x + config.BRICK_WIDTH / 2,
-                    brick.y + config.BRICK_HEIGHT / 2
+                    brick.y + config.BRICK_HEIGHT / 2,
+                    brick.powerUpType || 'wide'
                   );
                 }
 
-                // スコア計算（コンボ加算）
+                // 狙い方が得点差になるスコア計算
                 currentCombo++;
-                comboTimer = 60;
-                const points = 10 * currentCombo * levelRef.current;
+                comboTimer = 180;
+                const chainMultiplier = 1 + Math.min(3, Math.floor((currentCombo - 1) / 4));
+                const precisionMultiplier = precisionArmed ? 2 : 1;
+                const brickValue = brick.kind === 'bonus' ? 90 : brick.kind === 'armor' ? 35 : 20;
+                const points = brickValue * chainMultiplier * precisionMultiplier;
                 currentScore += points;
                 setScore(currentScore);
                 setCombo(currentCombo);
+                if (precisionArmed) {
+                  precisionArmed = false;
+                  precisionFlash = 75;
+                }
 
                 // 画面シェイク
                 shakeIntensity = 5;
@@ -779,8 +829,16 @@ export function RetroGame({ onClose }: RetroGameProps) {
 
               // 全ブロック破壊チェック
               const remaining = bricks.flat().filter(b => b.status === 1).length;
-              if (remaining === 0) {
-                setGameState('levelclear');
+              if (remaining === 0 && !runResolved) {
+                runResolved = true;
+                const elapsedSeconds = Math.floor(runFrames / 60);
+                const speedBonus = Math.max(0, 1200 - elapsedSeconds * 12);
+                const lifeBonus = currentLives * 180;
+                const clearBonus = speedBonus + lifeBonus;
+                setRunBonus(clearBonus);
+                currentScore += clearBonus;
+                setScore(currentScore);
+                setGameState('win');
               }
 
               return;
@@ -793,15 +851,28 @@ export function RetroGame({ onClose }: RetroGameProps) {
     // ゲームループ
     const gameLoop = () => {
       // レベル変更検知
-      if (needsLevelResetRef.current) {
-        needsLevelResetRef.current = false;
-        config = getGameConfig(levelRef.current);
+      if (needsRunResetRef.current) {
+        needsRunResetRef.current = false;
+        if (needsFullResetRef.current) {
+          needsFullResetRef.current = false;
+          currentScore = 0;
+          currentLives = 3;
+          setScore(0);
+          setLives(3);
+        }
+        config = getGameConfig();
         createBricks();
         resetBall(true);
         powerUps.length = 0;
         particles.length = 0;
         powerUpEffects.wide = 0;
         powerUpEffects.slow = 0;
+        currentCombo = 0;
+        comboTimer = 0;
+        precisionArmed = false;
+        precisionFlash = 0;
+        runFrames = 0;
+        setCombo(0);
       }
 
       // 画面シェイク
@@ -821,6 +892,9 @@ export function RetroGame({ onClose }: RetroGameProps) {
       drawPowerUps();
 
       if (gameStateRef.current === 'playing') {
+        if (!ballWaiting) runFrames++;
+        if (precisionFlash > 0) precisionFlash--;
+
         // パドル移動（スムーズ補間）
         const paddleSpeed = 0.15;
         paddle.x += (paddle.targetX - paddle.x) * paddleSpeed;
@@ -890,6 +964,12 @@ export function RetroGame({ onClose }: RetroGameProps) {
             ball.dy = -Math.abs(Math.cos(angle) * speed);
             ball.y = paddle.y - ball.radius;
 
+            if (hitPos <= 0.2 || hitPos >= 0.8) {
+              precisionArmed = true;
+              precisionFlash = 75;
+              createParticles(ball.x, ball.y, 'hsl(320, 70%, 84%)', 12);
+            }
+
             createParticles(ball.x, ball.y, 'hsl(190, 70%, 75%)', 5);
           }
 
@@ -927,14 +1007,13 @@ export function RetroGame({ onClose }: RetroGameProps) {
                 powerUpEffects.wide = 600;
                 break;
               case 'multi':
-                if (balls.length < 5) {
-                  const newBalls = balls.slice(0, 2).map(b => ({
-                    ...b,
-                    dx: b.dx + (Math.random() - 0.5) * 3,
-                    dy: b.dy,
-                    trail: [],
-                  }));
-                  balls.push(...newBalls);
+                if (balls.length < 4 && balls[0]) {
+                  const source = balls[0];
+                  const horizontalSpeed = Math.max(config.BALL_SPEED * 0.7, Math.abs(source.dx));
+                  balls.push(
+                    { ...source, dx: -horizontalSpeed, trail: [] },
+                    { ...source, dx: horizontalSpeed, trail: [] },
+                  );
                 }
                 break;
               case 'slow':
@@ -987,8 +1066,6 @@ export function RetroGame({ onClose }: RetroGameProps) {
         drawReadyScreen();
       } else if (gameStateRef.current === 'paused') {
         drawPausedScreen();
-      } else if (gameStateRef.current === 'levelclear') {
-        drawLevelClearScreen();
       }
 
       if (shakeIntensity > 0) {
@@ -1032,10 +1109,10 @@ export function RetroGame({ onClose }: RetroGameProps) {
     setGameState('ready');
     setScore(0);
     setLives(3);
-    setLevel(1);
     setCombo(0);
-    levelRef.current = 1;
-    needsLevelResetRef.current = true;
+    setRunBonus(0);
+    needsRunResetRef.current = true;
+    needsFullResetRef.current = true;
   };
 
   const submitScore = async () => {
@@ -1058,10 +1135,20 @@ export function RetroGame({ onClose }: RetroGameProps) {
     }
   };
 
-  const scoreRegistration = <div className="score-register">
-    <label htmlFor="neulog-player-name">RANKING NAME</label>
-    <div><input id="neulog-player-name" value={playerName} maxLength={12} onChange={event => setPlayerName(event.target.value)} aria-label="ランキングに表示する名前" />
-      <button onClick={submitScore} disabled={!sessionReady || submitState === 'sending' || submitState === 'done'}>{submitState === 'sending' ? 'SENDING...' : submitState === 'done' ? 'REGISTERED!' : 'REGISTER SCORE'}</button></div>
+  const rollPlayerName = () => {
+    setPlayerName(generatePlayerName());
+    window.requestAnimationFrame(() => {
+      nameInputRef.current?.focus();
+      nameInputRef.current?.select();
+    });
+  };
+
+  const scoreRegistration = (highlight: boolean) => <div className={highlight ? 'score-register score-register--win' : 'score-register'}>
+    {highlight && <p className="score-register__callout" aria-live="polite">クリア達成！名前を決めてランキングへ</p>}
+    <label htmlFor="neulog-player-name">ランキング表示名</label>
+    <div><input id="neulog-player-name" ref={nameInputRef} value={playerName} maxLength={12} onChange={event => setPlayerName(event.target.value)} aria-label="ランキングに表示する名前" />
+      <button type="button" className="score-register__dice" onClick={rollPlayerName} aria-label="サイコロでランダムなプレイヤー名を作る" title="サイコロでランダムなプレイヤー名を作る">🎲 おまかせ</button>
+      <button type="button" onClick={submitScore} disabled={!sessionReady || submitState === 'sending' || submitState === 'done'}>{submitState === 'sending' ? '送信中…' : submitState === 'done' ? '登録しました' : 'スコアを登録'}</button></div>
     {submitState === 'error' && <small>登録できませんでした。スコアは端末には残っています。</small>}
     {!sessionReady && <small>ランキング通信は準備中です。ゲームはそのまま遊べます。</small>}
     {ranking.length > 0 && <ol>{ranking.slice(0, 5).map((entry, index) => <li key={`${entry.player_name}-${index}`}><span>{index + 1}. {entry.player_name}</span><b>{entry.score.toLocaleString()}</b></li>)}</ol>}
@@ -1072,7 +1159,7 @@ export function RetroGame({ onClose }: RetroGameProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-2"
+      className="fixed inset-0 bg-black/95 z-[200] flex items-center justify-center p-2"
     >
       <div ref={containerRef} className="w-full max-w-4xl px-2 md:px-4">
         {/* 閉じるボタン（上部） */}
@@ -1087,7 +1174,7 @@ export function RetroGame({ onClose }: RetroGameProps) {
             onClick={onClose}
             className="px-4 py-2 bg-gray-800 text-gray-300 border-2 border-gray-600 font-display text-sm rounded-lg hover:bg-gray-700 transition-colors"
           >
-            ✕ CLOSE
+            ✕ 閉じる
           </motion.button>
         </motion.div>
 
@@ -1095,7 +1182,7 @@ export function RetroGame({ onClose }: RetroGameProps) {
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="relative bg-gray-900 border-4 border-cyan-400 rounded-lg overflow-hidden shadow-2xl shadow-cyan-500/30"
+          className={`game-shell relative bg-gray-900 border-4 border-cyan-400 rounded-lg overflow-hidden shadow-2xl shadow-cyan-500/30 ${gameState === 'win' || gameState === 'gameover' ? 'game-shell--result' : ''}`}
         >
           <canvas
             ref={canvasRef}
@@ -1114,29 +1201,29 @@ export function RetroGame({ onClose }: RetroGameProps) {
                 <motion.div
                   animate={{ scale: [1, 1.05, 1] }}
                   transition={{ duration: 0.5, repeat: Infinity }}
-                  className="inline-block px-8 py-4 bg-red-600 border-4 border-red-400"
+                  className="inline-block px-8 py-4 bg-fuchsia-700 border-4 border-pink-300 shadow-lg shadow-fuchsia-500/30"
                 >
                   <h3 className="text-2xl md:text-3xl text-white font-display">
-                    GAME OVER
+                    ゲームオーバー
                   </h3>
                 </motion.div>
                 <div className="space-y-2">
-                  <p className="text-xl md:text-2xl text-yellow-400 font-display">
-                    SCORE: {score}
+                  <p className="text-xl md:text-2xl text-cyan-300 font-display">
+                    スコア：{score}
                   </p>
                   <p className="text-lg text-purple-400 font-display">
-                    HIGH SCORE: {highScore}
+                    ハイスコア：{highScore}
                   </p>
                 </div>
-                {scoreRegistration}
+                {scoreRegistration(false)}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={handleRetry}
-                    className="px-8 py-4 bg-gradient-to-r from-green-500 to-cyan-500 text-white border-4 border-white font-display text-sm rounded-lg shadow-lg"
+                    className="px-8 py-4 bg-gradient-to-r from-cyan-400 to-violet-500 text-white border-4 border-cyan-100 font-display text-sm rounded-lg shadow-lg shadow-cyan-500/30"
                   >
-                    RETRY
+                    もう一度
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.1 }}
@@ -1144,7 +1231,7 @@ export function RetroGame({ onClose }: RetroGameProps) {
                     onClick={onClose}
                     className="px-8 py-4 bg-gray-700 text-white border-4 border-gray-500 font-display text-sm rounded-lg"
                   >
-                    EXIT
+                    終了
                   </motion.button>
                 </div>
               </div>
@@ -1165,16 +1252,19 @@ export function RetroGame({ onClose }: RetroGameProps) {
                     rotate: [0, 5, -5, 0],
                   }}
                   transition={{ duration: 1, repeat: Infinity }}
-                  className="inline-block px-8 py-4 bg-gradient-to-r from-yellow-400 to-orange-500 border-4 border-yellow-300"
+                  className="inline-block px-8 py-4 bg-gradient-to-r from-cyan-300 to-fuchsia-400 border-4 border-cyan-100 shadow-lg shadow-fuchsia-500/30"
                 >
                   <h3 className="text-2xl md:text-3xl text-white font-display">
-                    🎉 YOU WIN! 🎉
+                    🎉 クリア！ 🎉
                   </h3>
                 </motion.div>
-                <p className="text-xl md:text-2xl text-yellow-400 font-display">
-                  FINAL SCORE: {score}
+                <p className="text-xl md:text-2xl text-cyan-300 font-display">
+                  スコア：{score}
                 </p>
-                {scoreRegistration}
+                <p className="text-sm md:text-base text-pink-200 font-display">
+                  速攻＋残機ボーナス：+{runBonus}
+                </p>
+                {scoreRegistration(true)}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <motion.button
                     whileHover={{ scale: 1.1 }}
@@ -1182,7 +1272,7 @@ export function RetroGame({ onClose }: RetroGameProps) {
                     onClick={handleRetry}
                     className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-4 border-white font-display text-sm rounded-lg shadow-lg"
                   >
-                    PLAY AGAIN
+                    もう一度
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.1 }}
@@ -1190,7 +1280,7 @@ export function RetroGame({ onClose }: RetroGameProps) {
                     onClick={onClose}
                     className="px-8 py-4 bg-gray-700 text-white border-4 border-gray-500 font-display text-sm rounded-lg"
                   >
-                    EXIT
+                    終了
                   </motion.button>
                 </div>
               </div>
@@ -1201,6 +1291,8 @@ export function RetroGame({ onClose }: RetroGameProps) {
         {/* 操作説明（PCのみ） */}
         <div className="hidden md:flex justify-center gap-2 mt-2 text-xs text-gray-400">
           <span className="px-2 py-1 bg-gray-800 rounded">⬌ パドル移動</span>
+          <span className="px-2 py-1 bg-gray-800 rounded">端打ち → 次の破壊 ×2</span>
+          <span className="px-2 py-1 bg-gray-800 rounded">連続破壊 → 最大 ×4</span>
           <span className="px-2 py-1 bg-gray-800 rounded">ESC 一時停止</span>
         </div>
       </div>

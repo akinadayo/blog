@@ -16,11 +16,11 @@ export function VisitorTicket() {
   if (offline) return null;
 
   return <aside className={`visitor-ticket visitor-ticket--home ${visitNumber === null ? 'is-loading' : ''}`} aria-live="polite">
-    <div className="visitor-ticket__stub"><span>HELLO</span><b>♥</b><i>PLAYER</i></div>
+    <div className="visitor-ticket__stub"><span>ようこそ</span><b>♥</b><i>プレイヤー</i></div>
     <div className="visitor-ticket__main">
-      <span>WELCOME TO NeULOG</span>
+      <span>NeULOGへようこそ</span>
       <strong>No. {visitNumber === null ? '····' : String(visitNumber).padStart(4, '0')}</strong>
-      <p>{visitNumber === null ? 'プレイヤー番号をロード中…' : `あなたはこのブログを訪れた ${visitNumber}人目のプレイヤーです`}</p>
+      <p>{visitNumber === null ? '番号を読み込み中…' : `あなたはこのブログを訪れた ${visitNumber}人目のプレイヤーです`}</p>
     </div>
     <div className="visitor-ticket__holes" aria-hidden="true">••••••</div>
   </aside>;

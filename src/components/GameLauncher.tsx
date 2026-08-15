@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence } from 'motion/react';
 import { RetroGame } from './RetroGame';
 
@@ -14,11 +15,15 @@ export function GameLauncher() {
   return (
     <>
       <button onClick={() => setIsGameOpen(true)} className="pixel-button pixel-button--pink game-launcher-button">
-        <span aria-hidden="true">▶</span> PRESS START<span className="game-launcher-suffix"> · PLAY</span>
+        <span className="game-launcher-icon" aria-hidden="true">▶</span>
+        <span>ブロック崩しで遊ぶ</span>
       </button>
-      <AnimatePresence>
-        {isGameOpen && <RetroGame onClose={() => setIsGameOpen(false)} />}
-      </AnimatePresence>
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {isGameOpen && <RetroGame onClose={() => setIsGameOpen(false)} />}
+        </AnimatePresence>,
+        document.body,
+      )}
     </>
   );
 }
