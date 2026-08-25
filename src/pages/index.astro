@@ -12,11 +12,43 @@ const techPosts = await getCollection('tech', ({ data }) => !data.draft);
 const diaryPosts = await getCollection('diary', ({ data }) => !data.draft);
 const allPosts = [
   ...techPosts.map(post => ({ ...post, category: 'tech' as const, publicSlug: post.slug, reactionSlug: post.slug, description: post.data.description || '', coverImage: post.data.coverImage })),
-  ...diaryPosts.map(post => ({ ...post, category: 'diary' as const, publicSlug: post.data.permalink || post.slug, reactionSlug: post.slug, description: post.data.mood ? `今日の気分: ${post.data.mood}` : '', coverImage: post.data.coverImage })),
+  ...diaryPosts.map(post => ({ ...post, category: 'diary' as const, publicSlug: post.data.permalink || post.slug, reactionSlug: post.slug, description: post.data.description || (post.data.mood ? `今日の気分: ${post.data.mood}` : ''), coverImage: post.data.coverImage })),
 ].sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const site = Astro.site ?? new URL('https://neu-dev.net');
+const homeDescription = 'iOSアプリやWebツールを個人開発。生成AIを相棒にした開発の試行錯誤と、身近な疑問をデータや計算で掘り下げた記録を書くNeUのブログ。';
+const homeStructuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': new URL('/#website', site).href,
+      url: new URL('/', site).href,
+      name: 'NeULOG',
+      alternateName: 'NeU.dev',
+      description: homeDescription,
+      inLanguage: 'ja',
+      publisher: { '@id': new URL('/#person', site).href },
+    },
+    {
+      '@type': 'Person',
+      '@id': new URL('/#person', site).href,
+      name: 'NeU',
+      url: new URL('/about/', site).href,
+      jobTitle: '個人開発者',
+      knowsAbout: ['iOS', 'SwiftUI', '生成AI', 'Astro', 'Electron', 'データ分析'],
+    },
+  ],
+};
 ---
 
-<BaseLayout title="HOME" currentPage="home" description="iOSアプリやWebツールを個人開発。生成AIを相棒にした開発の試行錯誤と、身近な疑問をデータや計算で掘り下げた記録を書くNeUのブログ。">
+<BaseLayout
+  title="iOSアプリ・生成AIの個人開発ブログ"
+  currentPage="home"
+  description={homeDescription}
+  image="/images/og/neulog-home.png"
+  structuredData={homeStructuredData}
+>
   <section id="top" class="home-hero">
     <div class="home-hero__game" aria-hidden="true"><RetroGameBackground client:only="react" /></div>
     <div class="home-hero__veil"></div>
@@ -24,7 +56,12 @@ const allPosts = [
     <div class="home-hero__inner">
       <div class="hero-copy">
         <div class="status-ribbon"><i></i> PLAYER 01 / CREATING</div>
-        <h1><span>MAKE.</span><span>BREAK.</span><em>WRITE!</em></h1>
+        <h1>
+          <span aria-hidden="true">MAKE.</span>
+          <span aria-hidden="true">BREAK.</span>
+          <em aria-hidden="true">WRITE!</em>
+          <small>NeUのiOSアプリ・生成AI・Web個人開発ブログ</small>
+        </h1>
         <p>iOSアプリやWebツールをつくり、生成AIを相棒に試行錯誤する。<br />つくる途中の発見と、身近な疑問を掘り下げるNeUのログです。</p>
         <VisitorTicket client:visible />
         <div class="hero-actions">
@@ -46,7 +83,7 @@ const allPosts = [
   </div>
 
   <section id="latest" class="logs-section">
-    <div class="section-kicker"><span>実験ログ / {String(allPosts.length).padStart(3, '0')}件</span><b>最新の記事</b></div>
+    <div class="section-kicker"><span>実験ログ / {String(allPosts.length).padStart(3, '0')}件</span><h2>最新の記事</h2></div>
     <div class="log-filters">
       <a class="is-active" href="/">すべて <sup>{allPosts.length}</sup></a>
       <a href="/tech/">技術 <sup>{techPosts.length}</sup></a>

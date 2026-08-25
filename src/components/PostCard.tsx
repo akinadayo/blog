@@ -32,7 +32,7 @@ export function PostCard({ title, excerpt, date, category, slug, reactionSlug = 
     >
       <a href={`/${collection}/${slug}/`}>
         <div className="log-card__media">
-          {coverImage ? <img src={coverImage} alt="" loading="lazy" /> : (
+          {coverImage ? <img src={coverImage} alt="" loading="lazy" decoding="async" width={1200} height={675} /> : (
             <div className="log-card__placeholder" aria-hidden="true">
               <span>{collection === 'tech' ? '&lt;/&gt;' : ':-)'}</span>
               <i />

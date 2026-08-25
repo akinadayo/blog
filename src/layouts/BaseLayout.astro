@@ -8,9 +8,37 @@ interface Props {
   title: string;
   description?: string;
   currentPage?: string;
+  canonical?: string;
+  image?: string;
+  type?: 'website' | 'article';
+  publishedTime?: string;
+  modifiedTime?: string;
+  structuredData?: Record<string, unknown>;
+  noIndex?: boolean;
 }
 
-const { title, description = 'iOS・Webの個人開発と、身近な疑問の分析を記録するNeUのブログ。', currentPage = 'home' } = Astro.props;
+const {
+  title,
+  description,
+  currentPage = 'home',
+  canonical,
+  image,
+  type = 'website',
+  publishedTime,
+  modifiedTime,
+  structuredData,
+  noIndex = false,
+} = Astro.props;
+
+const site = Astro.site ?? new URL('https://neu-dev.net');
+const pageTitle = `${title} | NeULOG`;
+const pageDescription = description?.trim() || 'iOS・Webの個人開発と、身近な疑問の分析を記録するNeUのブログ。';
+const canonicalUrl = canonical ?? new URL(Astro.url.pathname, site).href;
+const imageUrl = new URL(image ?? '/images/og/neulog-home.png', site).href;
+const isDefaultImage = new URL(imageUrl).pathname === '/images/og/neulog-home.png';
+const structuredDataJson = structuredData
+  ? JSON.stringify(structuredData).replace(/</g, '\\u003c')
+  : undefined;
 ---
 
 <!DOCTYPE html>
@@ -18,12 +46,35 @@ const { title, description = 'iOS・Webの個人開発と、身近な疑問の�
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content={description} />
+    <meta name="description" content={pageDescription} />
+    <meta name="author" content="NeU" />
+    <meta name="robots" content={noIndex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'} />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="alternate" type="application/rss+xml" title="NeULOG RSS" href={new URL('/rss.xml', site).href} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700;800;900&family=DotGothic16&display=swap" />
     <meta name="theme-color" content="#1b2039" />
-    <meta property="og:title" content={`${title} | NeULOG`} />
-    <meta property="og:description" content={description} />
-    <title>{title} | NeULOG</title>
+    <meta property="og:locale" content="ja_JP" />
+    <meta property="og:site_name" content="NeULOG" />
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:alt" content={title} />
+    {isDefaultImage && <meta property="og:image:width" content="1200" />}
+    {isDefaultImage && <meta property="og:image:height" content="630" />}
+    {type === 'article' && publishedTime && <meta property="article:published_time" content={publishedTime} />}
+    {type === 'article' && modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDescription} />
+    <meta name="twitter:image" content={imageUrl} />
+    <meta name="twitter:image:alt" content={title} />
+    <title>{pageTitle}</title>
+    {structuredDataJson && <script type="application/ld+json" set:html={structuredDataJson}></script>}
 
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-96MQWWQ70F"></script>
@@ -36,10 +87,10 @@ const { title, description = 'iOS・Webの個人開発と、身近な疑問の�
   </head>
   <body id="top" class="min-h-screen bg-background flex flex-col relative overflow-x-hidden">
     <RetroBackground client:only="react" />
-    <Header client:only="react" currentPage={currentPage} />
+    <Header currentPage={currentPage} />
     <main class="flex-grow relative">
       <slot />
     </main>
-    <Footer client:only="react" />
+    <Footer />
   </body>
 </html>

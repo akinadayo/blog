@@ -18,8 +18,10 @@ const diaryCollection = defineCollection({
   schema: z.object({
     title: z.string(),
     permalink: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional(),
+    description: z.string().optional().default(''),
     coverImage: z.string().optional(),
     pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
     mood: z.string().optional(),
     draft: z.boolean().default(false),
   }),

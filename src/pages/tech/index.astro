@@ -3,10 +3,42 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 import { PostCard } from '../../components/PostCard';
 const posts = (await getCollection('tech', ({ data }) => !data.draft)).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const site = Astro.site ?? new URL('https://neu-dev.net');
+const pageUrl = new URL('/tech/', site).href;
+const description = 'iOS・SwiftUI、生成AI、Astro、Electronなど、NeUの個人開発で試した実装・失敗・学びをまとめた技術記事一覧。';
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'CollectionPage',
+      url: pageUrl,
+      name: 'NeULOG 技術記事一覧',
+      description,
+      inLanguage: 'ja',
+      mainEntity: {
+        '@type': 'ItemList',
+        itemListElement: posts.map((post, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          name: post.data.title,
+          url: new URL(`/tech/${post.slug}/`, site).href,
+        })),
+      },
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'ホーム', item: new URL('/', site).href },
+        { '@type': 'ListItem', position: 2, name: '技術記事', item: pageUrl },
+      ],
+    },
+  ],
+};
 ---
-<BaseLayout title="TECH LOG" currentPage="post" description="NeUの技術実験ログ一覧">
+<BaseLayout title="技術記事一覧" currentPage="tech" description={description} structuredData={structuredData}>
   <section class="archive-hero archive-hero--tech"><span>コレクション / 技術</span><h1>技術の<br />実験ログ</h1><p>つくって、壊して、理解したこと。</p></section>
   <section class="logs-section logs-section--archive">
+    <div class="section-kicker"><span>TECH ARCHIVE / {String(posts.length).padStart(3, '0')}件</span><h2>技術記事一覧</h2></div>
     <div class="log-filters"><a href="/">すべて</a><a class="is-active" href="/tech/">技術 <sup>{posts.length}</sup></a><a href="/diary/">日記</a></div>
     <div class="logs-grid">{posts.map((post, index) => <PostCard client:visible title={post.data.title} excerpt={post.data.description} date={post.data.pubDate.toLocaleDateString('ja-JP')} category="tech" slug={post.slug} collection="tech" coverImage={post.data.coverImage} index={index} featured={index === 0} />)}</div>
   </section>

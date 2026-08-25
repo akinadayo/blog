@@ -69,6 +69,18 @@ function remarkBreaks() {
   };
 }
 
+// 記事本文の画像は初期表示を塞がず、非同期でデコードする。
+function rehypeImageDefaults() {
+  return (tree) => {
+    visit(tree, 'element', (node) => {
+      if (node.tagName !== 'img') return;
+      node.properties ||= {};
+      node.properties.loading ||= 'lazy';
+      node.properties.decoding ||= 'async';
+    });
+  };
+}
+
 // https://astro.build/config
 export default defineConfig({
   site: 'https://neu-dev.net',
@@ -86,6 +98,6 @@ export default defineConfig({
   output: 'static',
   markdown: {
     remarkPlugins: [remarkDirective, remarkAdmonitions, remarkMath, remarkBreaks],
-    rehypePlugins: [rehypeKatex],
+    rehypePlugins: [rehypeKatex, rehypeImageDefaults],
   },
 });

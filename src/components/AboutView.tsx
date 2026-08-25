@@ -20,7 +20,7 @@ export function AboutView() {
         </motion.div>
         <motion.div className="profile-card" initial={{ opacity: 0, rotate: 3, y: 30 }} animate={{ opacity: 1, rotate: -2, y: 0 }}>
           <div className="profile-card__top"><span>プロフィールカード</span><span>ACTIVE</span></div>
-          <div className="profile-card__avatar"><img src="/icon.JPG" alt="NeU" /></div>
+          <div className="profile-card__avatar"><img src="/icon.JPG" alt="NeU" width={2048} height={2048} /></div>
           <div className="profile-card__data">
             <b>NeU / 個人開発者</b>
             <span>拠点：愛知</span>
@@ -30,7 +30,7 @@ export function AboutView() {
       </section>
 
       <section className="about-story">
-        <div className="section-kicker"><span>この人について</span><b>わたしについて</b></div>
+        <div className="section-kicker"><span>この人について</span><h2>わたしについて</h2></div>
         <div className="about-story__grid">
           <div className="about-copy">
             <p>愛知を拠点に、iOSアプリやWebツールを個人開発しています。生成AIは、企画・仕様づくり・実装を一緒に進める相棒です。小さくつくり、実際に動かし、リリースまで持っていくのが好きです。</p>
@@ -44,11 +44,11 @@ export function AboutView() {
       </section>
 
       <section className="interest-section">
-        <div className="section-kicker"><span>いま夢中なこと</span><b>つくっているもの</b></div>
+        <div className="section-kicker"><span>いま夢中なこと</span><h2>つくっているもの</h2></div>
         <div className="interest-grid">
           {interests.map(([number, title, text], index) => (
             <motion.article key={title} whileHover={{ y: -8, rotate: index % 2 ? 1 : -1 }}>
-              <span>{number}</span><h2>{title}</h2><p>{text}</p>
+              <span>{number}</span><h3>{title}</h3><p>{text}</p>
             </motion.article>
           ))}
         </div>

@@ -8,13 +8,74 @@ interface Props {
   title: string;
   description?: string;
   pubDate: Date;
+  updatedDate?: Date;
   category: string;
   tags?: string[];
   coverImage?: string;
   slug: string;
+  reactionSlug?: string;
 }
 
-const { title, description, pubDate, category, tags = [], coverImage, slug } = Astro.props;
+const { title, description, pubDate, updatedDate, category, tags = [], coverImage, slug, reactionSlug = slug } = Astro.props;
+
+const site = Astro.site ?? new URL('https://neu-dev.net');
+const canonicalUrl = new URL(`/${category}/${slug}/`, site).href;
+const imageUrl = coverImage ? new URL(coverImage, site).href : undefined;
+const categoryName = category === 'tech' ? '技術記事' : '日記';
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'BlogPosting',
+      headline: title,
+      description,
+      ...(imageUrl ? { image: [imageUrl] } : {}),
+      datePublished: pubDate.toISOString(),
+      dateModified: (updatedDate ?? pubDate).toISOString(),
+      mainEntityOfPage: canonicalUrl,
+      url: canonicalUrl,
+      inLanguage: 'ja',
+      author: {
+        '@type': 'Person',
+        name: 'NeU',
+        url: new URL('/about/', site).href,
+      },
+      publisher: {
+        '@type': 'Person',
+        name: 'NeU',
+        url: new URL('/', site).href,
+      },
+      isPartOf: {
+        '@type': 'Blog',
+        name: 'NeULOG',
+        url: new URL('/', site).href,
+      },
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'ホーム',
+          item: new URL('/', site).href,
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: categoryName,
+          item: new URL(`/${category}/`, site).href,
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: title,
+          item: canonicalUrl,
+        },
+      ],
+    },
+  ],
+};
 
 const formattedDate = pubDate.toLocaleDateString('ja-JP', {
   year: 'numeric',
@@ -23,7 +84,17 @@ const formattedDate = pubDate.toLocaleDateString('ja-JP', {
 });
 ---
 
-<BaseLayout title={title} description={description} currentPage="post">
+<BaseLayout
+  title={title}
+  description={description}
+  currentPage={category}
+  canonical={canonicalUrl}
+  image={imageUrl}
+  type="article"
+  publishedTime={pubDate.toISOString()}
+  modifiedTime={(updatedDate ?? pubDate).toISOString()}
+  structuredData={structuredData}
+>
   <div class="min-h-screen">
     <PostHeader
       client:load
@@ -31,15 +102,15 @@ const formattedDate = pubDate.toLocaleDateString('ja-JP', {
       category={category}
       date={formattedDate}
       tags={tags}
-      slug={slug}
+      slug={reactionSlug}
       coverImage={coverImage}
     />
 
     <div class="article-shell">
-      <article class="prose article-body" data-article-slug={`${category}/${slug}`}>
+      <article class="prose article-body" data-article-slug={`${category}/${reactionSlug}`}>
         <slot />
       </article>
-      <ArticleReactions client:visible slug={`${category}/${slug}`} />
+      <ArticleReactions client:visible slug={`${category}/${reactionSlug}`} />
       <PostFooter client:load />
     </div>
   </div>
@@ -60,29 +131,32 @@ const formattedDate = pubDate.toLocaleDateString('ja-JP', {
 
   <!-- Mermaid対応 -->
   <script type="module">
-    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: 'dark',
-      themeVariables: {
-        primaryColor: '#a855f7',
-        primaryTextColor: '#f0f0f0',
-        primaryBorderColor: '#a855f7',
-        lineColor: '#888',
-        secondaryColor: '#1a1a24',
-        tertiaryColor: '#12121a'
-      }
-    });
+    const mermaidBlocks = document.querySelectorAll('pre[data-language="mermaid"]');
+    if (mermaidBlocks.length) {
+      const mermaidModuleUrl = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+      const { default: mermaid } = await import(/* @vite-ignore */ mermaidModuleUrl);
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: 'dark',
+        themeVariables: {
+          primaryColor: '#a855f7',
+          primaryTextColor: '#f0f0f0',
+          primaryBorderColor: '#a855f7',
+          lineColor: '#888',
+          secondaryColor: '#1a1a24',
+          tertiaryColor: '#12121a'
+        }
+      });
 
-    // Astro形式: pre[data-language="mermaid"] を変換
-    document.querySelectorAll('pre[data-language="mermaid"]').forEach((pre) => {
-      const code = pre.textContent;
-      const div = document.createElement('div');
-      div.className = 'mermaid';
-      div.textContent = code;
-      pre.parentNode.replaceChild(div, pre);
-    });
+      mermaidBlocks.forEach((pre) => {
+        const code = pre.textContent;
+        const div = document.createElement('div');
+        div.className = 'mermaid';
+        div.textContent = code;
+        pre.parentNode?.replaceChild(div, pre);
+      });
 
-    await mermaid.run();
+      await mermaid.run();
+    }
   </script>
 </BaseLayout>

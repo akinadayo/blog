@@ -28,7 +28,7 @@ export function Leaderboard() {
   const gap = topScore && personalBest ? Math.max(0, topScore - personalBest) : null;
 
   return <section className="leaderboard-section">
-    <div className="section-kicker"><span>ONE RUN / 1面勝負</span><b>ブロック崩しランキング</b></div>
+    <div className="section-kicker"><span>ONE RUN / 1面勝負</span><h2>ブロック崩しランキング</h2></div>
     <div className="leaderboard-rules" aria-label="得点ルール">
       <span>端打ち <b>次の破壊 ×2</b></span>
       <span>連続破壊 <b>最大 ×4</b></span>

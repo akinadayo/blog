@@ -16,10 +16,13 @@ const { Content } = await post.render();
 
 <PostLayout
   title={post.data.title}
+  description={post.data.description}
   pubDate={post.data.pubDate}
+  updatedDate={post.data.updatedDate}
   category="diary"
   coverImage={post.data.coverImage}
-  slug={post.slug}
+  slug={post.data.permalink || post.slug}
+  reactionSlug={post.slug}
 >
   <Content />
 </PostLayout>

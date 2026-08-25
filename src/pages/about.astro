@@ -1,8 +1,34 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { AboutView } from '../components/AboutView';
+
+const site = Astro.site ?? new URL('https://neu-dev.net');
+const pageUrl = new URL('/about/', site).href;
+const description = 'iOSアプリとWebツールを個人開発し、生成AIを企画から実装までの相棒にしているNeUのプロフィール。';
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'ProfilePage',
+      '@id': `${pageUrl}#profile`,
+      url: pageUrl,
+      name: 'NeUのプロフィール',
+      description,
+      inLanguage: 'ja',
+      mainEntity: { '@id': new URL('/#person', site).href },
+    },
+    {
+      '@type': 'Person',
+      '@id': new URL('/#person', site).href,
+      name: 'NeU',
+      url: pageUrl,
+      jobTitle: '個人開発者',
+      knowsAbout: ['iOS', 'SwiftUI', '生成AI', 'Astro', 'Electron', 'データ分析'],
+    },
+  ],
+};
 ---
 
-<BaseLayout title="ABOUT" currentPage="about" description="iOSアプリとWebツールを個人開発し、生成AIを企画から実装までの相棒にしているNeUのプロフィール。">
-  <AboutView client:only="react" />
+<BaseLayout title="NeUのプロフィール" currentPage="about" description={description} structuredData={structuredData}>
+  <AboutView client:load />
 </BaseLayout>
