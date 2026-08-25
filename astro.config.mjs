@@ -73,6 +73,10 @@ function remarkBreaks() {
 export default defineConfig({
   site: 'https://neu-dev.net',
   // base: '/blog', // カスタムドメインではbaseは不要
+  redirects: {
+    '/diary/2026-08-25-駅徒歩30分級の居酒屋は1日何人で黒字-新時代-尾張旭店を損益分岐点で分析':
+      '/diary/shinjidai-owariasahi/',
+  },
   integrations: [
     react(),
   ],

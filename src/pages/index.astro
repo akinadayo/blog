@@ -11,8 +11,8 @@ import { VisitorTicket } from '../components/VisitorTicket';
 const techPosts = await getCollection('tech', ({ data }) => !data.draft);
 const diaryPosts = await getCollection('diary', ({ data }) => !data.draft);
 const allPosts = [
-  ...techPosts.map(post => ({ ...post, category: 'tech' as const, description: post.data.description || '', coverImage: post.data.coverImage })),
-  ...diaryPosts.map(post => ({ ...post, category: 'diary' as const, description: post.data.mood ? `今日の気分: ${post.data.mood}` : '', coverImage: post.data.coverImage })),
+  ...techPosts.map(post => ({ ...post, category: 'tech' as const, publicSlug: post.slug, reactionSlug: post.slug, description: post.data.description || '', coverImage: post.data.coverImage })),
+  ...diaryPosts.map(post => ({ ...post, category: 'diary' as const, publicSlug: post.data.permalink || post.slug, reactionSlug: post.slug, description: post.data.mood ? `今日の気分: ${post.data.mood}` : '', coverImage: post.data.coverImage })),
 ].sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 
@@ -54,7 +54,7 @@ const allPosts = [
     </div>
     <div class="logs-grid">
       {allPosts.map((post, index) => (
-        <PostCard client:visible title={post.data.title} excerpt={post.description} date={post.data.pubDate.toLocaleDateString('ja-JP')} category={post.category} slug={post.slug} collection={post.category} coverImage={post.coverImage} index={index} featured={index === 0} />
+        <PostCard client:visible title={post.data.title} excerpt={post.description} date={post.data.pubDate.toLocaleDateString('ja-JP')} category={post.category} slug={post.publicSlug} reactionSlug={post.reactionSlug} collection={post.category} coverImage={post.coverImage} index={index} featured={index === 0} />
       ))}
     </div>
     {allPosts.length === 0 && <div class="empty-state"><b>まだ記事がありません</b><span>最初の記事を準備中です。</span></div>}

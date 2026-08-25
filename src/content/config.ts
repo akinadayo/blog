@@ -17,6 +17,7 @@ const diaryCollection = defineCollection({
   type: 'content',
   schema: z.object({
     title: z.string(),
+    permalink: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional(),
     coverImage: z.string().optional(),
     pubDate: z.coerce.date(),
     mood: z.string().optional(),

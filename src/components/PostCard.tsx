@@ -8,17 +8,18 @@ interface PostCardProps {
   date: string;
   category: string;
   slug: string;
+  reactionSlug?: string;
   collection: 'tech' | 'diary';
   coverImage?: string;
   index?: number;
   featured?: boolean;
 }
 
-export function PostCard({ title, excerpt, date, category, slug, collection, coverImage, index = 0, featured = false }: PostCardProps) {
+export function PostCard({ title, excerpt, date, category, slug, reactionSlug = slug, collection, coverImage, index = 0, featured = false }: PostCardProps) {
   const [reactions, setReactions] = useState<Record<string, number>>({});
   useEffect(() => {
-    getAllReactionCounts().then(all => setReactions(all[`${collection}/${slug}`] || {})).catch(() => {});
-  }, [collection, slug]);
+    getAllReactionCounts().then(all => setReactions(all[`${collection}/${reactionSlug}`] || {})).catch(() => {});
+  }, [collection, reactionSlug]);
   const blocks = [reactions.spark || 0, reactions.try || 0, reactions.broke || 0];
   const totalReactions = blocks.reduce((sum, value) => sum + value, 0);
   return (
