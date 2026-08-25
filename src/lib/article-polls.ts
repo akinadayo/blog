@@ -51,7 +51,7 @@ function enhancePoll(root: HTMLElement, articleSlug: string) {
   const panel = make('div', 'article-poll__panel');
   const header = make('div', 'article-poll__header');
   const headerMeta = make('div', 'article-poll__header-meta');
-  const totalBadge = make('span', 'article-poll__total', '集計中…');
+  const totalBadge = make('span', 'article-poll__total', '投票後に結果表示');
   headerMeta.append(make('span', 'article-poll__kicker', 'READER SELECT'), totalBadge);
   header.append(
     headerMeta,
@@ -69,6 +69,7 @@ function enhancePoll(root: HTMLElement, articleSlug: string) {
     button.setAttribute('aria-pressed', 'false');
     const label = make('span', 'article-poll__choice-label', option);
     const result = make('span', 'article-poll__choice-result');
+    result.hidden = true;
     const meter = make('i', 'article-poll__meter');
     meter.append(make('u'));
     result.append(meter, make('em', '', '集計中…'));
@@ -98,7 +99,11 @@ function enhancePoll(root: HTMLElement, articleSlug: string) {
     }
     const total = Math.max(0, Number(poll.total) || 0);
     const hasResults = Array.isArray(poll.counts) && poll.counts.length >= options.length;
-    totalBadge.textContent = hasResults ? `全${total.toLocaleString()}票` : '集計待ち';
+    const revealResults = selected !== null;
+    totalBadge.textContent = !revealResults
+      ? '投票後に結果表示'
+      : hasResults ? `全${total.toLocaleString()}票` : '集計待ち';
+    root.classList.toggle('has-results', revealResults);
     buttons.forEach((button, index) => {
       const count = Math.max(0, Number(poll.counts?.[index]) || 0);
       const percent = total ? Math.round((count / total) * 100) : 0;
@@ -106,7 +111,9 @@ function enhancePoll(root: HTMLElement, articleSlug: string) {
       button.classList.toggle('is-selected', selected === index);
       button.setAttribute('aria-pressed', String(selected === index));
       const bar = button.querySelector<HTMLElement>('.article-poll__meter u');
+      const resultWrap = button.querySelector<HTMLElement>('.article-poll__choice-result');
       const result = button.querySelector<HTMLElement>('.article-poll__choice-result em');
+      if (resultWrap) resultWrap.hidden = !revealResults;
       if (bar) bar.style.width = hasResults ? `${percent}%` : '0%';
       if (result) result.textContent = hasResults ? `${percent}% · ${count.toLocaleString()}票` : '集計待ち';
     });
@@ -116,7 +123,7 @@ function enhancePoll(root: HTMLElement, articleSlug: string) {
     continuation.hidden = requiresVote && selected === null;
     lock.hidden = !requiresVote || selected !== null;
     status.textContent = message || (selected === null
-      ? `回答を募集中 · 全${total.toLocaleString()}票`
+      ? '回答を募集中 · 結果は投票後に表示'
       : `回答済み · 全${total.toLocaleString()}票`);
   };
 
