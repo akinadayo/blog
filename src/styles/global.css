@@ -773,19 +773,6 @@ a, button { -webkit-tap-highlight-color: transparent; }
   .admonition-caution::before { content: "CAUTION"; }
   .admonition-info::before { content: "INFO"; }
 
-  .prose .katex-display {
-    overflow-x: auto;
-    margin: 1.35rem 0;
-    padding: 1rem .75rem;
-    border: 1px solid color-mix(in srgb, var(--cyan) 28%, transparent);
-    border-radius: 12px;
-    background: color-mix(in srgb, var(--cyan) 5%, white);
-  }
-
-  .prose .katex-display > .katex {
-    font-size: clamp(.88rem, 1.7vw, 1.08rem);
-  }
-
   .admonition-note {
     background: hsl(200 70% 92%);
     border-color: hsl(200 70% 60%);
@@ -809,5 +796,30 @@ a, button { -webkit-tap-highlight-color: transparent; }
   .admonition-info {
     background: hsl(280 70% 94%);
     border-color: hsl(280 70% 60%);
+  }
+}
+
+/* KaTeX は非レイヤーCSSを読み込むため、数式の調整もレイヤー外に置く */
+.prose .katex-display {
+  overflow: visible;
+  margin: 1.35rem 0;
+  padding: 1rem .75rem;
+  border: 1px solid color-mix(in srgb, var(--cyan) 28%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--cyan) 5%, white);
+}
+
+.prose .katex-display > .katex {
+  font-size: clamp(.88rem, 1.7vw, 1.08rem);
+}
+
+@media (max-width: 640px) {
+  .prose .katex-display {
+    margin: 1rem 0;
+    padding: .85rem .3rem;
+  }
+
+  .prose .katex-display > .katex {
+    font-size: clamp(.8rem, 3.3vw, .9rem);
   }
 }
