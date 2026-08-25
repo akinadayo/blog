@@ -36,13 +36,20 @@ const formattedDate = pubDate.toLocaleDateString('ja-JP', {
     />
 
     <div class="article-shell">
-      <article class="prose article-body">
+      <article class="prose article-body" data-article-slug={`${category}/${slug}`}>
         <slot />
       </article>
       <ArticleReactions client:visible slug={`${category}/${slug}`} />
       <PostFooter client:load />
     </div>
   </div>
+
+  <script>
+    import { initArticlePolls } from '../lib/article-polls';
+
+    const article = document.querySelector<HTMLElement>('.article-body[data-article-slug]');
+    if (article) initArticlePolls(article);
+  </script>
 
   <!-- Mermaid対応 -->
   <script type="module">

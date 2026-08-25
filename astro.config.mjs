@@ -15,6 +15,29 @@ function remarkAdmonitions() {
         node.type === 'textDirective'
       ) {
         const data = node.data || (node.data = {});
+        if (node.type === 'containerDirective' && node.name === 'poll') {
+          const attributes = node.attributes || {};
+          const pollId = String(attributes.id || '').trim();
+          const question = String(attributes.question || 'あなたはどう思う？').trim().slice(0, 120);
+          const requiresVote = String(attributes.gate || 'true').trim().toLowerCase() !== 'false';
+          const options = String(attributes.options || '')
+            .split('|')
+            .map(option => option.trim())
+            .filter(Boolean)
+            .slice(0, 6);
+
+          data.hName = 'section';
+          data.hProperties = /^[a-zA-Z0-9_-]{1,64}$/.test(pollId) && options.length >= 2
+            ? {
+                class: 'article-poll',
+                'data-poll-id': pollId,
+                'data-poll-question': question,
+                'data-poll-options': JSON.stringify(options),
+                'data-poll-gate': String(requiresVote),
+              }
+            : { class: 'article-poll article-poll--invalid' };
+          return;
+        }
         const tagName = node.type === 'textDirective' ? 'span' : 'div';
 
         data.hName = tagName;
@@ -22,6 +45,24 @@ function remarkAdmonitions() {
           class: `admonition admonition-${node.name}`,
         };
       }
+    });
+  };
+}
+
+// Markdownの段落内改行をHTMLの改行として出力する。
+// エディターで入力した改行が、公開記事でもそのまま見えるようにする。
+function remarkBreaks() {
+  return (tree) => {
+    visit(tree, 'text', (node, index, parent) => {
+      if (!parent || index === undefined || !node.value.includes('\n')) return;
+
+      const parts = node.value.split('\n');
+      const replacement = [];
+      parts.forEach((value, partIndex) => {
+        if (value) replacement.push({ type: 'text', value });
+        if (partIndex < parts.length - 1) replacement.push({ type: 'break' });
+      });
+      parent.children.splice(index, 1, ...replacement);
     });
   };
 }
@@ -38,6 +79,6 @@ export default defineConfig({
   },
   output: 'static',
   markdown: {
-    remarkPlugins: [remarkDirective, remarkAdmonitions],
+    remarkPlugins: [remarkDirective, remarkAdmonitions, remarkBreaks],
   },
 });
