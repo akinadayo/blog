@@ -3,6 +3,8 @@ import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
 import remarkDirective from 'remark-directive';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import { visit } from 'unist-util-visit';
 
 // カスタムディレクティブプラグイン (:::note, :::warning など)
@@ -79,6 +81,7 @@ export default defineConfig({
   },
   output: 'static',
   markdown: {
-    remarkPlugins: [remarkDirective, remarkAdmonitions, remarkBreaks],
+    remarkPlugins: [remarkDirective, remarkAdmonitions, remarkMath, remarkBreaks],
+    rehypePlugins: [rehypeKatex],
   },
 });

@@ -46,9 +46,16 @@ const formattedDate = pubDate.toLocaleDateString('ja-JP', {
 
   <script>
     import { initArticlePolls } from '../lib/article-polls';
+    import { communityApi } from '../lib/community';
 
     const article = document.querySelector<HTMLElement>('.article-body[data-article-slug]');
-    if (article) initArticlePolls(article);
+    if (article) {
+      initArticlePolls(article);
+      const articleSlug = article.dataset.articleSlug;
+      if (articleSlug) {
+        communityApi('visit', { method: 'POST', body: { slug: articleSlug } }).catch(() => undefined);
+      }
+    }
   </script>
 
   <!-- Mermaid対応 -->

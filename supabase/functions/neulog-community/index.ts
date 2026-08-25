@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const headers = {
-  "Access-Control-Allow-Headers": "content-type, x-neulog-visitor",
+  "Access-Control-Allow-Headers": "content-type, x-neulog-dashboard, x-neulog-visitor",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Cache-Control": "no-store",
   "Content-Type": "application/json; charset=utf-8",
@@ -11,6 +11,7 @@ const allowedOrigins = new Set([
   "https://neu-dev.net",
   "http://localhost:4321",
   "http://127.0.0.1:4321",
+  "null",
 ]);
 const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {
   auth: { persistSession: false, autoRefreshToken: false },
@@ -20,6 +21,20 @@ async function sha256(value: string) {
   const data = new TextEncoder().encode(value);
   return Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", data)))
     .map(byte => byte.toString(16).padStart(2, "0")).join("");
+}
+async function secureEqual(left: string, right: string) {
+  const encode = (value: string) => new TextEncoder().encode(value);
+  const [leftDigest, rightDigest] = await Promise.all([
+    crypto.subtle.digest("SHA-256", encode(left)),
+    crypto.subtle.digest("SHA-256", encode(right)),
+  ]);
+  const leftBytes = new Uint8Array(leftDigest);
+  const rightBytes = new Uint8Array(rightDigest);
+  let difference = 0;
+  for (let index = 0; index < leftBytes.length; index += 1) {
+    difference |= leftBytes[index] ^ rightBytes[index];
+  }
+  return difference === 0;
 }
 function visitorSource(req: Request) {
   const visitor = (req.headers.get("x-neulog-visitor") || "").slice(0, 80);
@@ -73,6 +88,117 @@ async function pollResults(articleSlug: string, pollId: string, visitorHash: str
   };
 }
 
+type VisitRow = { article_slug: string; visitor_hash: string; created_at: string };
+type ActivityRow = { article_slug: string; created_at: string };
+
+let analyticsCache: { expiresAt: number; snapshot: unknown } | null = null;
+
+async function fetchAllRows<T>(table: string, columns: string) {
+  const rows: T[] = [];
+  const pageSize = 1000;
+  for (let page = 0; page < 100; page += 1) {
+    const from = page * pageSize;
+    const { data, error } = await supabase
+      .from(table)
+      .select(columns)
+      .order("created_at", { ascending: true })
+      .range(from, from + pageSize - 1);
+    if (error) throw error;
+    rows.push(...((data || []) as T[]));
+    if (!data || data.length < pageSize) break;
+  }
+  return rows;
+}
+
+function tokyoDateKey(value: string | number | Date) {
+  return new Date(new Date(value).getTime() + 9 * 60 * 60_000).toISOString().slice(0, 10);
+}
+
+async function analyticsSnapshot() {
+  if (analyticsCache && analyticsCache.expiresAt > Date.now()) return analyticsCache.snapshot;
+
+  const [visits, reactions, pollVotes] = await Promise.all([
+    fetchAllRows<VisitRow>("neulog_article_visits", "article_slug,visitor_hash,created_at"),
+    fetchAllRows<ActivityRow>("neulog_reactions", "article_slug,created_at"),
+    fetchAllRows<ActivityRow>("neulog_poll_votes", "article_slug,created_at"),
+  ]);
+  const homepageSlug = "site/neulog";
+  const articleVisits = visits.filter(row => row.article_slug !== homepageSlug);
+  const visitors = new Set(visits.map(row => row.visitor_hash));
+  const homepageVisitors = new Set(visits.filter(row => row.article_slug === homepageSlug).map(row => row.visitor_hash));
+  const articleVisitors = new Set(articleVisits.map(row => row.visitor_hash));
+  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60_000;
+  const last7Visitors = new Set(visits.filter(row => new Date(row.created_at).getTime() >= sevenDaysAgo).map(row => row.visitor_hash));
+  const pagesPerVisitor = new Map<string, Set<string>>();
+  for (const row of visits) {
+    if (!pagesPerVisitor.has(row.visitor_hash)) pagesPerVisitor.set(row.visitor_hash, new Set());
+    pagesPerVisitor.get(row.visitor_hash)!.add(row.article_slug);
+  }
+
+  const articleMap = new Map<string, {
+    slug: string;
+    readers: number;
+    reactions: number;
+    pollVotes: number;
+    lastReadAt: string | null;
+  }>();
+  const articleEntry = (slug: string) => {
+    if (!articleMap.has(slug)) {
+      articleMap.set(slug, { slug, readers: 0, reactions: 0, pollVotes: 0, lastReadAt: null });
+    }
+    return articleMap.get(slug)!;
+  };
+  for (const row of articleVisits) {
+    const entry = articleEntry(row.article_slug);
+    entry.readers += 1;
+    if (!entry.lastReadAt || row.created_at > entry.lastReadAt) entry.lastReadAt = row.created_at;
+  }
+  for (const row of reactions) articleEntry(row.article_slug).reactions += 1;
+  for (const row of pollVotes) articleEntry(row.article_slug).pollVotes += 1;
+
+  const todayTokyo = new Date(Date.now() + 9 * 60 * 60_000);
+  todayTokyo.setUTCHours(0, 0, 0, 0);
+  const daily = Array.from({ length: 14 }, (_, index) => {
+    const date = new Date(todayTokyo.getTime() - (13 - index) * 24 * 60 * 60_000).toISOString().slice(0, 10);
+    return { date, visitors: 0, articleReads: 0 };
+  });
+  const dailyMap = new Map(daily.map(day => [day.date, { day, visitors: new Set<string>() }]));
+  for (const row of visits) {
+    const bucket = dailyMap.get(tokyoDateKey(row.created_at));
+    if (!bucket) continue;
+    bucket.visitors.add(row.visitor_hash);
+    if (row.article_slug !== homepageSlug) bucket.day.articleReads += 1;
+  }
+  for (const bucket of dailyMap.values()) bucket.day.visitors = bucket.visitors.size;
+
+  const snapshot = {
+    generatedAt: new Date().toISOString(),
+    metrics: {
+      totalVisitors: visitors.size,
+      last7Visitors: last7Visitors.size,
+      homepageVisitors: homepageVisitors.size,
+      articleVisitors: articleVisitors.size,
+      articleReads: articleVisits.length,
+      returningVisitors: Array.from(pagesPerVisitor.values()).filter(pages => pages.size > 1).length,
+      reactions: reactions.length,
+      pollVotes: pollVotes.length,
+    },
+    daily,
+    articles: Array.from(articleMap.values()).sort((left, right) =>
+      right.readers - left.readers ||
+      (right.reactions + right.pollVotes) - (left.reactions + left.pollVotes) ||
+      left.slug.localeCompare(right.slug)
+    ),
+    coverage: {
+      startedAt: visits[0]?.created_at || null,
+      articleTrackingStartedOn: "2026-08-25",
+      note: "記事別の閲覧数は、記事ページ計測の公開後から蓄積されます。",
+    },
+  };
+  analyticsCache = { expiresAt: Date.now() + 60_000, snapshot };
+  return snapshot;
+}
+
 Deno.serve(async (req) => {
   const origin = req.headers.get("origin") || "";
   const responseHeaders = {
@@ -85,6 +211,19 @@ Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
     const action = url.searchParams.get("action") || "";
+    if (req.method === "GET" && action === "analytics") {
+      const expectedKey = Deno.env.get("DASHBOARD_ACCESS_KEY") || "";
+      const suppliedKey = req.headers.get("x-neulog-dashboard") || "";
+      if (!expectedKey || !suppliedKey || !await secureEqual(expectedKey, suppliedKey)) {
+        return json({ error: "unauthorized" }, 401);
+      }
+      try {
+        return json({ analytics: await analyticsSnapshot() });
+      } catch (error) {
+        console.error("analytics_snapshot_failed", error);
+        return json({ error: "temporary_unavailable" }, 500);
+      }
+    }
     if (req.method === "GET" && action === "reactions") return json({ reactions: await reactionCounts(url.searchParams.get("slug") || undefined) });
     if (req.method === "GET" && action === "leaderboard") return json({ leaderboard: await leaderboard() });
     if (req.method === "GET" && action === "poll-results") {
