@@ -16,7 +16,7 @@ const allPosts = [
 ].sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 
-<BaseLayout title="HOME" currentPage="home" description="技術を試して、たまに壊して、気づきを書く。エンジニアNeUの実験ノート。">
+<BaseLayout title="HOME" currentPage="home" description="iOSアプリやWebツールを個人開発。生成AIを相棒にした開発の試行錯誤と、身近な疑問をデータや計算で掘り下げた記録を書くNeUのブログ。">
   <section id="top" class="home-hero">
     <div class="home-hero__game" aria-hidden="true"><RetroGameBackground client:only="react" /></div>
     <div class="home-hero__veil"></div>
@@ -25,7 +25,7 @@ const allPosts = [
       <div class="hero-copy">
         <div class="status-ribbon"><i></i> PLAYER 01 / CREATING</div>
         <h1><span>MAKE.</span><span>BREAK.</span><em>WRITE!</em></h1>
-        <p>技術を試して、たまに壊して、気づきを書く。<br />エンジニア NeU の実験ノート兼、寄り道だらけの冒険ログです。</p>
+        <p>iOSアプリやWebツールをつくり、生成AIを相棒に試行錯誤する。<br />つくる途中の発見と、身近な疑問を掘り下げるNeUのログです。</p>
         <VisitorTicket client:visible />
         <div class="hero-actions">
           <a href="#latest" class="pixel-button pixel-button--purple hero-latest">最新の記事を読む ↘</a>
@@ -42,7 +42,7 @@ const allPosts = [
   </section>
 
   <div class="skill-marquee" aria-label="Topics">
-    <div><span>3D MODELING ✦</span><span>FAILED EXPERIMENTS ✦</span><span>REACT NATIVE ✦</span><span>AI LAB ✦</span><span>ELECTRONICS ✦</span><span>3D MODELING ✦</span><span>FAILED EXPERIMENTS ✦</span></div>
+    <div><span>iOS / SWIFTUI ✦</span><span>AI-ASSISTED DEV ✦</span><span>INDIE APP DEV ✦</span><span>ASTRO / WEB ✦</span><span>ELECTRON ✦</span><span>DATA / ANALYSIS ✦</span><span>iOS / SWIFTUI ✦</span><span>AI-ASSISTED DEV ✦</span></div>
   </div>
 
   <section id="latest" class="logs-section">
@@ -75,7 +75,7 @@ const allPosts = [
         parallax.style.setProperty('--parallax-y', `${y * 14}px`);
       }, { passive: true });
     }
-    const quests = ['今日は知らないAPIを1つ触る。', '失敗したコードを1つメモに残す。', '机の上の積み回路を10分だけ動かす。', 'READMEを未来の自分向けに1行直す。'];
+    const quests = ['今日は知らないAPIを1つ触る。', '失敗したコードを1つメモに残す。', '眠っているアイデアを10分だけ動くものにする。', 'READMEを未来の自分向けに1行直す。'];
     document.querySelector('[data-side-quest]')?.addEventListener('click', () => {
       const target = document.querySelector('[data-side-quest-message]');
       if (target) target.textContent = `今日のおまけ：${quests[Math.floor(Math.random() * quests.length)]}`;
