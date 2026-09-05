@@ -1,7 +1,7 @@
 ---
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
-import { RetroBackground } from '../components/RetroBackground';
+import { GameLauncher } from '../components/GameLauncher';
 import '../styles/global.css';
 
 interface Props {
@@ -54,8 +54,8 @@ const structuredDataJson = structuredData
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700;800;900&family=DotGothic16&display=swap" />
-    <meta name="theme-color" content="#1b2039" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600;700;800&family=Press+Start+2P&family=DotGothic16&display=swap" />
+    <meta name="theme-color" content="#e3ece6" />
     <meta property="og:locale" content="ja_JP" />
     <meta property="og:site_name" content="NeULOG" />
     <meta property="og:type" content={type} />
@@ -77,20 +77,31 @@ const structuredDataJson = structuredData
     {structuredDataJson && <script type="application/ld+json" set:html={structuredDataJson}></script>}
 
     <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-96MQWWQ70F"></script>
-    <script is:inline>
+    {import.meta.env.PROD && <script async src="https://www.googletagmanager.com/gtag/js?id=G-96MQWWQ70F"></script>}
+    {import.meta.env.PROD && <script is:inline>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'G-96MQWWQ70F');
-    </script>
+    </script>}
   </head>
   <body id="top" class="min-h-screen bg-background flex flex-col relative overflow-x-hidden">
-    <RetroBackground client:only="react" />
+    <a href="#main-content" class="skip-link">本文へ移動</a>
     <Header currentPage={currentPage} />
-    <main class="flex-grow relative">
+    <main id="main-content" class="flex-grow relative">
       <slot />
     </main>
     <Footer />
+    <GameLauncher client:load showButton={false} />
+    <script>
+      document.querySelectorAll('[data-open-game]').forEach(button => {
+        button.addEventListener('click', () => window.dispatchEvent(new Event('open-neulog-game')));
+      });
+      const quests = ['今日は知らないAPIを1つ触る。', '失敗したコードを1つメモに残す。', '眠っているアイデアを10分だけ動くものにする。', 'READMEを未来の自分向けに1行直す。'];
+      document.querySelector('[data-side-quest]')?.addEventListener('click', () => {
+        const target = document.querySelector('[data-side-quest-message]');
+        if (target) target.textContent = `今日のおまけ：${quests[Math.floor(Math.random() * quests.length)]}`;
+      });
+    </script>
   </body>
 </html>

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'motion/react';
 import { getAllReactionCounts } from '../lib/community';
 
 interface PostCardProps {
@@ -23,26 +22,21 @@ export function PostCard({ title, excerpt, date, category, slug, reactionSlug = 
   const blocks = [reactions.spark || 0, reactions.try || 0, reactions.broke || 0];
   const totalReactions = blocks.reduce((sum, value) => sum + value, 0);
   return (
-    <motion.article
+    <article
       className={`log-card ${featured ? 'log-card--featured' : ''}`}
-      initial={{ opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.45, delay: Math.min(index * 0.07, 0.28) }}
     >
       <a href={`/${collection}/${slug}/`}>
-        <div className="log-card__media">
+        <div className="log-card__window"><span aria-hidden="true">● ● ●</span><span>{collection} / {String(index + 1).padStart(2, '0')}</span></div>
+        {featured && <div className="log-card__media">
           {coverImage ? <img src={coverImage} alt="" loading="lazy" decoding="async" width={1200} height={675} /> : (
             <div className="log-card__placeholder" aria-hidden="true">
-              <span>{collection === 'tech' ? '&lt;/&gt;' : ':-)'}</span>
+              <span>{collection === 'tech' ? '</>' : ':-)'}</span>
               <i />
             </div>
           )}
-          <span className={`log-card__category log-card__category--${collection}`}>{collection === 'tech' ? '技術' : '日記'}</span>
-          <span className="log-card__number">No. {String(index + 1).padStart(2, '0')}</span>
-        </div>
+        </div>}
         <div className="log-card__body">
-          <time>{date}</time>
+          <div className="log-card__meta"><span>{collection === 'tech' ? '技術 · 個人開発' : '日記 · 分析'}</span><time>{date.replaceAll('/', '.')}</time></div>
           <h3>{title}</h3>
           {excerpt && <p>{excerpt}</p>}
           {totalReactions > 0 && <div className="log-card__reactions" aria-label={`${totalReactions} reactions`}>
@@ -52,6 +46,6 @@ export function PostCard({ title, excerpt, date, category, slug, reactionSlug = 
           <span className="log-card__read">記事を読む <b>↗</b></span>
         </div>
       </a>
-    </motion.article>
+    </article>
   );
 }

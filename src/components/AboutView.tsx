@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'motion/react';
 
 const skills = ['iOS / SWIFTUI', 'AI-ASSISTED DEV', 'INDIE APP DEV', 'ASTRO / WEB', 'ELECTRON', 'DATA / ANALYSIS'];
 const interests = [
@@ -12,13 +11,13 @@ export function AboutView() {
   return (
     <div className="about-page">
       <section className="about-hero">
-        <motion.div className="about-hero__copy" initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }}>
+        <div className="about-hero__copy">
           <span className="eyebrow">プロフィール / 01</span>
           <h1>HELLO,<br /><em>I'M NeU.</em></h1>
           <p>iOSアプリとWebツールをつくる個人開発者。生成AIを相棒に、アイデアを動くものへ変えています。</p>
           <a className="pixel-button pixel-button--cyan" href="mailto:yukak367@gmail.com">メッセージを送る ↗</a>
-        </motion.div>
-        <motion.div className="profile-card" initial={{ opacity: 0, rotate: 3, y: 30 }} animate={{ opacity: 1, rotate: -2, y: 0 }}>
+        </div>
+        <div className="profile-card">
           <div className="profile-card__top"><span>プロフィールカード</span><span>ACTIVE</span></div>
           <div className="profile-card__avatar"><img src="/icon.JPG" alt="NeU" width={2048} height={2048} /></div>
           <div className="profile-card__data">
@@ -26,7 +25,7 @@ export function AboutView() {
             <span>拠点：愛知</span>
             <span>状態：制作中 ●</span>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       <section className="about-story">
@@ -46,10 +45,10 @@ export function AboutView() {
       <section className="interest-section">
         <div className="section-kicker"><span>いま夢中なこと</span><h2>つくっているもの</h2></div>
         <div className="interest-grid">
-          {interests.map(([number, title, text], index) => (
-            <motion.article key={title} whileHover={{ y: -8, rotate: index % 2 ? 1 : -1 }}>
+          {interests.map(([number, title, text]) => (
+            <article key={title}>
               <span>{number}</span><h3>{title}</h3><p>{text}</p>
-            </motion.article>
+            </article>
           ))}
         </div>
       </section>

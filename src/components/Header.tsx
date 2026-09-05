@@ -9,14 +9,15 @@ export function Header({ currentPage = 'home' }: HeaderProps) {
     <header className="site-header">
       <div className="site-header__inner">
         <a href="/" className="brand" aria-label="NeULOG ホーム" aria-current={currentPage === 'home' ? 'page' : undefined}>
-          <span className="brand__mark" aria-hidden="true">N</span>
+          <span className="brand__mark" aria-hidden="true">n.</span>
           <span className="brand__name">NeULOG</span>
         </a>
         <nav className="site-nav" aria-label="メインメニュー">
           <a className={currentPage === 'tech' ? 'is-active' : ''} aria-current={currentPage === 'tech' ? 'page' : undefined} href="/tech/">技術</a>
           <a className={currentPage === 'diary' ? 'is-active' : ''} aria-current={currentPage === 'diary' ? 'page' : undefined} href="/diary/">日記</a>
-          <a className={currentPage === 'about' ? 'is-active' : ''} aria-current={currentPage === 'about' ? 'page' : undefined} href="/about/">プロフィール</a>
+          <a className={currentPage === 'about' ? 'is-active' : ''} aria-current={currentPage === 'about' ? 'page' : undefined} href="/about/">わたしについて</a>
         </nav>
+        <button type="button" className="nav-play" data-open-game aria-label="ブロック崩しで遊ぶ"><span aria-hidden="true">↗</span> PLAY</button>
       </div>
     </header>
   );

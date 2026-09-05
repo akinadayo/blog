@@ -2,8 +2,6 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 import { PostCard } from '../components/PostCard';
-import { RetroGameBackground } from '../components/RetroGameBackground';
-import { GameLauncher } from '../components/GameLauncher';
 import { HeroConsole } from '../components/HeroConsole';
 import { Leaderboard } from '../components/Leaderboard';
 import { VisitorTicket } from '../components/VisitorTicket';
@@ -49,45 +47,31 @@ const homeStructuredData = {
   image="/images/og/neulog-home.png"
   structuredData={homeStructuredData}
 >
-  <section id="top" class="home-hero">
-    <div class="home-hero__game" aria-hidden="true"><RetroGameBackground client:only="react" /></div>
-    <div class="home-hero__veil"></div>
-    <div class="hero-orbit hero-orbit--one"></div><div class="hero-orbit hero-orbit--two"></div>
+  <section class="home-hero" aria-label="NeUの個人開発と寄り道の記録">
     <div class="home-hero__inner">
       <div class="hero-copy">
-        <div class="status-ribbon"><i></i> PLAYER 01 / CREATING</div>
-        <h1>
-          <span aria-hidden="true">MAKE.</span>
-          <span aria-hidden="true">BREAK.</span>
-          <em aria-hidden="true">WRITE!</em>
-          <small>NeUのiOSアプリ・生成AI・Web個人開発ブログ</small>
-        </h1>
-        <p>iOSアプリやWebツールをつくり、生成AIを相棒に試行錯誤する。<br />つくる途中の発見と、身近な疑問を掘り下げるNeUのログです。</p>
-        <VisitorTicket client:visible />
+        <div class="status-ribbon"><i aria-hidden="true"></i> NEU'S FIELD NOTES</div>
+        <h1>つくりかけも、<br /><em>おもしろい。</em></h1>
+        <p>iOSアプリも、Webも、身近な「なんで？」も。<br />生成AIを相棒に、つくって考えたことを残す場所。</p>
         <div class="hero-actions">
-          <a href="#latest" class="pixel-button pixel-button--purple hero-latest">最新の記事を読む ↘</a>
-          <button class="pixel-button pixel-button--ghost" data-side-quest>⚄ おまけを引く</button>
+          <a href="#latest" class="pixel-button pixel-button--purple hero-latest">最新の記事を読む <span aria-hidden="true">↘</span></a>
+          <span class="hero-byline">WRITTEN BY NeU</span>
         </div>
-        <div class="side-quest-message" data-side-quest-message aria-live="polite"></div>
+        <div class="hero-topics" aria-label="いまの領域"><span>iOS / SwiftUI</span><span>生成AI</span><span>Web / Electron</span><span>データ分析</span></div>
       </div>
       <div class="hero-console-stack">
         <HeroConsole client:visible />
-        <GameLauncher client:only="react" />
+        <button type="button" class="pixel-button game-launcher-button" data-open-game><span class="game-launcher-icon" aria-hidden="true">▶</span><span>ブロック崩しで遊ぶ</span><span aria-hidden="true">↗</span></button>
       </div>
     </div>
-    <a class="scroll-cue" href="#latest"><span>記事へ</span><i></i></a>
   </section>
 
-  <div class="skill-marquee" aria-label="Topics">
-    <div><span>iOS / SWIFTUI ✦</span><span>AI-ASSISTED DEV ✦</span><span>INDIE APP DEV ✦</span><span>ASTRO / WEB ✦</span><span>ELECTRON ✦</span><span>DATA / ANALYSIS ✦</span><span>iOS / SWIFTUI ✦</span><span>AI-ASSISTED DEV ✦</span></div>
-  </div>
-
   <section id="latest" class="logs-section">
-    <div class="section-kicker"><span>実験ログ / {String(allPosts.length).padStart(3, '0')}件</span><h2>最新の記事</h2></div>
-    <div class="log-filters">
-      <a class="is-active" href="/">すべて <sup>{allPosts.length}</sup></a>
-      <a href="/tech/">技術 <sup>{techPosts.length}</sup></a>
-      <a href="/diary/">日記 <sup>{diaryPosts.length}</sup></a>
+    <div class="logs-heading">
+      <div class="section-kicker"><h2>最近のログ</h2><span>LATEST NOTES / {String(allPosts.length).padStart(2, '0')}</span></div>
+      <nav class="log-filters" aria-label="記事の種類">
+        <a class="is-active" aria-current="page" href="/">すべて</a><a href="/tech/">技術</a><a href="/diary/">日記</a>
+      </nav>
     </div>
     <div class="logs-grid">
       {allPosts.map((post, index) => (
@@ -97,25 +81,11 @@ const homeStructuredData = {
     {allPosts.length === 0 && <div class="empty-state"><b>まだ記事がありません</b><span>最初の記事を準備中です。</span></div>}
   </section>
 
+  <section class="arcade-strip" aria-label="ブロック崩し">
+    <span class="arcade-symbol" aria-hidden="true">✳</span>
+    <div><span class="eyebrow">A LITTLE BREAK</span><h2>考える合間に、ひとゲーム。</h2><p>ブロックを崩して、頭をちょっとほぐそう。</p></div>
+    <button type="button" class="pixel-button" data-open-game>ブロック崩しで遊ぶ <span aria-hidden="true">↗</span></button>
+  </section>
+  <div class="home-visitor"><VisitorTicket client:visible /></div>
   <Leaderboard client:visible />
-
-  <script>
-    const hero = document.querySelector('.home-hero');
-    const parallax = document.querySelector('[data-parallax]');
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (hero && parallax && !reduced) {
-      hero.addEventListener('pointermove', (event) => {
-        const rect = hero.getBoundingClientRect();
-        const x = (event.clientX - rect.left) / rect.width - .5;
-        const y = (event.clientY - rect.top) / rect.height - .5;
-        parallax.style.setProperty('--parallax-x', `${x * 18}px`);
-        parallax.style.setProperty('--parallax-y', `${y * 14}px`);
-      }, { passive: true });
-    }
-    const quests = ['今日は知らないAPIを1つ触る。', '失敗したコードを1つメモに残す。', '眠っているアイデアを10分だけ動くものにする。', 'READMEを未来の自分向けに1行直す。'];
-    document.querySelector('[data-side-quest]')?.addEventListener('click', () => {
-      const target = document.querySelector('[data-side-quest-message]');
-      if (target) target.textContent = `今日のおまけ：${quests[Math.floor(Math.random() * quests.length)]}`;
-    });
-  </script>
 </BaseLayout>
